@@ -1,0 +1,671 @@
+{
+  "size": 14400,
+  "objects": [
+    {
+      "x": 8334,
+      "y": 9398,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_424"
+    },
+    {
+      "x": 13186,
+      "y": 9550,
+      "type": "planet",
+      "name": "planet_288"
+    },
+    {
+      "x": 7207,
+      "y": 2993,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_691"
+    },
+    {
+      "x": 8701,
+      "y": 14007,
+      "type": "sun",
+      "name": "sun_856"
+    },
+    {
+      "x": 12330,
+      "y": 6540,
+      "type": "comet",
+      "name": "comet_838"
+    },
+    {
+      "x": 7440,
+      "y": 5064,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_169"
+    },
+    {
+      "x": 10841,
+      "y": 7979,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_752"
+    },
+    {
+      "x": 4002,
+      "y": 7553,
+      "type": "comet",
+      "name": "comet_899"
+    },
+    {
+      "x": 12481,
+      "y": 4185,
+      "type": "comet",
+      "name": "comet_172"
+    },
+    {
+      "x": 6916,
+      "y": 5664,
+      "type": "black_hole",
+      "name": "black_hole_489"
+    },
+    {
+      "x": 5565,
+      "y": 9026,
+      "type": "sun",
+      "name": "sun_75"
+    },
+    {
+      "x": 9950,
+      "y": 7060,
+      "type": "black_hole",
+      "name": "black_hole_836"
+    },
+    {
+      "x": 10149,
+      "y": 9449,
+      "type": "planet",
+      "name": "planet_737"
+    },
+    {
+      "x": 3405,
+      "y": 10314,
+      "type": "planet",
+      "name": "planet_754"
+    },
+    {
+      "x": 8242,
+      "y": 9719,
+      "type": "comet",
+      "name": "comet_461"
+    },
+    {
+      "x": 9141,
+      "y": 9431,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_938"
+    },
+    {
+      "x": 10761,
+      "y": 5678,
+      "type": "black_hole",
+      "name": "black_hole_179"
+    },
+    {
+      "x": 1685,
+      "y": 9716,
+      "type": "sun",
+      "name": "sun_669"
+    },
+    {
+      "x": 9989,
+      "y": 12017,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_705"
+    },
+    {
+      "x": 8599,
+      "y": 7282,
+      "type": "comet",
+      "name": "comet_128"
+    },
+    {
+      "x": 12763,
+      "y": 11790,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_889"
+    },
+    {
+      "x": 87,
+      "y": 4405,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_533"
+    },
+    {
+      "x": 11685,
+      "y": 3596,
+      "type": "sun",
+      "name": "sun_662"
+    },
+    {
+      "x": 3272,
+      "y": 10521,
+      "type": "sun",
+      "name": "sun_906"
+    },
+    {
+      "x": 6799,
+      "y": 13277,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_871"
+    },
+    {
+      "x": 7894,
+      "y": 1664,
+      "type": "comet",
+      "name": "comet_547"
+    },
+    {
+      "x": 9763,
+      "y": 6976,
+      "type": "planet",
+      "name": "planet_93"
+    },
+    {
+      "x": 12464,
+      "y": 13706,
+      "type": "planet",
+      "name": "planet_581"
+    },
+    {
+      "x": 4562,
+      "y": 14357,
+      "type": "sun",
+      "name": "sun_469"
+    },
+    {
+      "x": 3813,
+      "y": 2020,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_708"
+    },
+    {
+      "x": 10739,
+      "y": 1510,
+      "type": "black_hole",
+      "name": "black_hole_694"
+    },
+    {
+      "x": 6645,
+      "y": 1391,
+      "type": "black_hole",
+      "name": "black_hole_668"
+    },
+    {
+      "x": 167,
+      "y": 8994,
+      "type": "black_hole",
+      "name": "black_hole_982"
+    },
+    {
+      "x": 12659,
+      "y": 9978,
+      "type": "comet",
+      "name": "comet_1000"
+    },
+    {
+      "x": 295,
+      "y": 7637,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_569"
+    },
+    {
+      "x": 8592,
+      "y": 12570,
+      "type": "comet",
+      "name": "comet_920"
+    },
+    {
+      "x": 14289,
+      "y": 6298,
+      "type": "sun",
+      "name": "sun_660"
+    },
+    {
+      "x": 10204,
+      "y": 6842,
+      "type": "comet",
+      "name": "comet_873"
+    },
+    {
+      "x": 1321,
+      "y": 8724,
+      "type": "black_hole",
+      "name": "black_hole_336"
+    },
+    {
+      "x": 10023,
+      "y": 2151,
+      "type": "planet",
+      "name": "planet_849"
+    },
+    {
+      "x": 5428,
+      "y": 13580,
+      "type": "black_hole",
+      "name": "black_hole_132"
+    },
+    {
+      "x": 6865,
+      "y": 2465,
+      "type": "planet",
+      "name": "planet_447"
+    },
+    {
+      "x": 7946,
+      "y": 739,
+      "type": "black_hole",
+      "name": "black_hole_521"
+    },
+    {
+      "x": 5078,
+      "y": 11941,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_633"
+    },
+    {
+      "x": 157,
+      "y": 274,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_789"
+    },
+    {
+      "x": 5750,
+      "y": 3137,
+      "type": "sun",
+      "name": "sun_861"
+    },
+    {
+      "x": 13282,
+      "y": 13503,
+      "type": "comet",
+      "name": "comet_110"
+    },
+    {
+      "x": 8200,
+      "y": 11872,
+      "type": "black_hole",
+      "name": "black_hole_571"
+    },
+    {
+      "x": 2660,
+      "y": 3390,
+      "type": "black_hole",
+      "name": "black_hole_920"
+    },
+    {
+      "x": 10158,
+      "y": 10052,
+      "type": "black_hole",
+      "name": "black_hole_32"
+    },
+    {
+      "x": 4986,
+      "y": 5983,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_542"
+    },
+    {
+      "x": 6487,
+      "y": 3902,
+      "type": "black_hole",
+      "name": "black_hole_214"
+    },
+    {
+      "x": 1191,
+      "y": 5158,
+      "type": "sun",
+      "name": "sun_477"
+    },
+    {
+      "x": 7525,
+      "y": 5520,
+      "type": "sun",
+      "name": "sun_298"
+    },
+    {
+      "x": 1757,
+      "y": 14239,
+      "type": "planet",
+      "name": "planet_901"
+    },
+    {
+      "x": 11722,
+      "y": 4589,
+      "type": "black_hole",
+      "name": "black_hole_68"
+    },
+    {
+      "x": 512,
+      "y": 12894,
+      "type": "planet",
+      "name": "planet_832"
+    },
+    {
+      "x": 3755,
+      "y": 7139,
+      "type": "sun",
+      "name": "sun_353"
+    },
+    {
+      "x": 5876,
+      "y": 7087,
+      "type": "planet",
+      "name": "planet_706"
+    },
+    {
+      "x": 2441,
+      "y": 8853,
+      "type": "planet",
+      "name": "planet_527"
+    },
+    {
+      "x": 2190,
+      "y": 11881,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_29"
+    },
+    {
+      "x": 3310,
+      "y": 4849,
+      "type": "comet",
+      "name": "comet_900"
+    },
+    {
+      "x": 3500,
+      "y": 11194,
+      "type": "sun",
+      "name": "sun_887"
+    },
+    {
+      "x": 1093,
+      "y": 5099,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_403"
+    },
+    {
+      "x": 12679,
+      "y": 10228,
+      "type": "sun",
+      "name": "sun_896"
+    },
+    {
+      "x": 7385,
+      "y": 5103,
+      "type": "black_hole",
+      "name": "black_hole_127"
+    },
+    {
+      "x": 7964,
+      "y": 2041,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_949"
+    },
+    {
+      "x": 4624,
+      "y": 10983,
+      "type": "sun",
+      "name": "sun_447"
+    },
+    {
+      "x": 1263,
+      "y": 8686,
+      "type": "planet",
+      "name": "planet_891"
+    },
+    {
+      "x": 4457,
+      "y": 10252,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_277"
+    },
+    {
+      "x": 2294,
+      "y": 5306,
+      "type": "black_hole",
+      "name": "black_hole_461"
+    },
+    {
+      "x": 8327,
+      "y": 4503,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_503"
+    },
+    {
+      "x": 5670,
+      "y": 7049,
+      "type": "comet",
+      "name": "comet_194"
+    },
+    {
+      "x": 5749,
+      "y": 12385,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_772"
+    },
+    {
+      "x": 3986,
+      "y": 12447,
+      "type": "black_hole",
+      "name": "black_hole_459"
+    },
+    {
+      "x": 4710,
+      "y": 7415,
+      "type": "black_hole",
+      "name": "black_hole_387"
+    },
+    {
+      "x": 8031,
+      "y": 6690,
+      "type": "black_hole",
+      "name": "black_hole_158"
+    },
+    {
+      "x": 9205,
+      "y": 12618,
+      "type": "sun",
+      "name": "sun_212"
+    },
+    {
+      "x": 13088,
+      "y": 5664,
+      "type": "comet",
+      "name": "comet_492"
+    },
+    {
+      "x": 131,
+      "y": 9655,
+      "type": "planet",
+      "name": "planet_200"
+    },
+    {
+      "x": 14029,
+      "y": 8039,
+      "type": "sun",
+      "name": "sun_168"
+    },
+    {
+      "x": 4794,
+      "y": 8452,
+      "type": "planet",
+      "name": "planet_495"
+    },
+    {
+      "x": 13479,
+      "y": 14395,
+      "type": "sun",
+      "name": "sun_521"
+    },
+    {
+      "x": 4633,
+      "y": 4124,
+      "type": "comet",
+      "name": "comet_740"
+    },
+    {
+      "x": 11146,
+      "y": 10418,
+      "type": "comet",
+      "name": "comet_693"
+    },
+    {
+      "x": 9053,
+      "y": 7468,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_450"
+    },
+    {
+      "x": 2633,
+      "y": 10739,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_135"
+    },
+    {
+      "x": 2808,
+      "y": 10838,
+      "type": "comet",
+      "name": "comet_474"
+    },
+    {
+      "x": 4012,
+      "y": 11306,
+      "type": "black_hole",
+      "name": "black_hole_851"
+    },
+    {
+      "x": 5552,
+      "y": 398,
+      "type": "sun",
+      "name": "sun_519"
+    },
+    {
+      "x": 13196,
+      "y": 4837,
+      "type": "comet",
+      "name": "comet_797"
+    },
+    {
+      "x": 13739,
+      "y": 9390,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_441"
+    },
+    {
+      "x": 12342,
+      "y": 12122,
+      "type": "black_hole",
+      "name": "black_hole_675"
+    },
+    {
+      "x": 9359,
+      "y": 10865,
+      "type": "sun",
+      "name": "sun_609"
+    },
+    {
+      "x": 1187,
+      "y": 3135,
+      "type": "comet",
+      "name": "comet_697"
+    },
+    {
+      "x": 2754,
+      "y": 12010,
+      "type": "planet",
+      "name": "planet_116"
+    },
+    {
+      "x": 2786,
+      "y": 744,
+      "type": "sun",
+      "name": "sun_80"
+    },
+    {
+      "x": 7234,
+      "y": 7305,
+      "type": "planet",
+      "name": "planet_469"
+    },
+    {
+      "x": 2280,
+      "y": 10958,
+      "type": "planet",
+      "name": "planet_744"
+    },
+    {
+      "x": 3168,
+      "y": 4198,
+      "type": "asteroid_belt",
+      "name": "asteroid_belt_859"
+    },
+    {
+      "x": 3590,
+      "y": 9859,
+      "type": "planet",
+      "name": "planet_778"
+    },
+    {
+      "x": 3173,
+      "y": 6066,
+      "type": "black_hole",
+      "name": "black_hole_145"
+    },
+    {
+      "x": 3244,
+      "y": 6314,
+      "type": "comet",
+      "name": "comet_274"
+    },
+    {
+      "x": 11047,
+      "y": 3960,
+      "type": "black_hole",
+      "name": "black_hole_436"
+    },
+    {
+      "x": 3755,
+      "y": 4779,
+      "type": "black_hole",
+      "name": "black_hole_578"
+    },
+    {
+      "x": 13431,
+      "y": 12122,
+      "type": "sun",
+      "name": "sun_691"
+    },
+    {
+      "x": 7608,
+      "y": 12488,
+      "type": "comet",
+      "name": "comet_701"
+    },
+    {
+      "x": 9299,
+      "y": 3248,
+      "type": "comet",
+      "name": "comet_841"
+    },
+    {
+      "x": 5253,
+      "y": 12234,
+      "type": "sun",
+      "name": "sun_91"
+    },
+    {
+      "x": 12326,
+      "y": 11819,
+      "type": "black_hole",
+      "name": "black_hole_184"
+    },
+    {
+      "x": 1305,
+      "y": 582,
+      "type": "sun",
+      "name": "sun_82"
+    }
+  ]
+}

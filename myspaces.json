@@ -1,0 +1,147 @@
+{
+  "name": "myspaces",
+  "size": 14400,
+  "celestial_objects": [
+    {
+      "x": 4719,
+      "y": 2858,
+      "type": "sun",
+      "name": "Sun_1",
+      "size": 9
+    },
+    {
+      "x": 11880,
+      "y": 397,
+      "type": "black_hole",
+      "name": "BlackHole_1",
+      "size": 8
+    },
+    {
+      "x": 6777,
+      "y": 13450,
+      "type": "asteroid_belt",
+      "name": "AsteroidBelt_1",
+      "size": 4
+    },
+    {
+      "x": 1562,
+      "y": 5282,
+      "type": "asteroid_belt",
+      "name": "AsteroidBelt_2",
+      "size": 5
+    },
+    {
+      "x": 1215,
+      "y": 9873,
+      "type": "asteroid_belt",
+      "name": "AsteroidBelt_3",
+      "size": 6
+    },
+    {
+      "x": 4801,
+      "y": 6374,
+      "type": "asteroid_belt",
+      "name": "AsteroidBelt_4",
+      "size": 4
+    },
+    {
+      "x": 7856,
+      "y": 9897,
+      "type": "asteroid_belt",
+      "name": "AsteroidBelt_5",
+      "size": 2
+    },
+    {
+      "x": 551,
+      "y": 4884,
+      "type": "planet",
+      "name": "Planet_1",
+      "size": 6
+    },
+    {
+      "x": 12021,
+      "y": 7143,
+      "type": "planet",
+      "name": "Planet_2",
+      "size": 6
+    },
+    {
+      "x": 1427,
+      "y": 11774,
+      "type": "planet",
+      "name": "Planet_3",
+      "size": 5
+    },
+    {
+      "x": 8844,
+      "y": 3824,
+      "type": "planet",
+      "name": "Planet_4",
+      "size": 10
+    },
+    {
+      "x": 2543,
+      "y": 6034,
+      "type": "planet",
+      "name": "Planet_5",
+      "size": 3
+    },
+    {
+      "x": 10654,
+      "y": 7303,
+      "type": "planet",
+      "name": "Planet_6",
+      "size": 3
+    },
+    {
+      "x": 14399,
+      "y": 12490,
+      "type": "planet",
+      "name": "Planet_7",
+      "size": 2
+    },
+    {
+      "x": 11966,
+      "y": 3799,
+      "type": "planet",
+      "name": "Planet_8",
+      "size": 3
+    },
+    {
+      "x": 12397,
+      "y": 1624,
+      "type": "planet",
+      "name": "Planet_9",
+      "size": 3
+    },
+    {
+      "x": 5222,
+      "y": 13815,
+      "type": "planet",
+      "name": "Planet_10",
+      "size": 4
+    },
+    {
+      "x": 4093,
+      "y": 10604,
+      "type": "comet",
+      "name": "Comet_1",
+      "size": 2
+    },
+    {
+      "x": 4481,
+      "y": 3823,
+      "type": "comet",
+      "name": "Comet_2",
+      "size": 1
+    },
+    {
+      "x": 3324,
+      "y": 3949,
+      "type": "comet",
+      "name": "Comet_3",
+      "size": 2
+    }
+  ],
+  "created_at": "2025-10-27T23:00:45.181046"
+}

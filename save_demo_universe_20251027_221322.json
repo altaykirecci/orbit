@@ -1,0 +1,14 @@
+{
+  "universe_name": "demo_universe",
+  "universe_size": 14400,
+  "ship": {
+    "x": 4186,
+    "y": 8853,
+    "direction": "right",
+    "speed": 1,
+    "energy": 14400,
+    "max_energy": 14400,
+    "is_moving": false
+  },
+  "saved_at": "2025-10-27T22:13:22.733778"
+}

@@ -93,23 +93,37 @@ class SpaceGamePygame:
         self.mission_started = False
         self.last_position_update = datetime.now()
         self.last_command_output = ""
+        self.current_universe_name = "uzay"
         
-        # UI alanları
-        self.header_height = 60
-        self.status_height = 120
+        # UI alanları - 3 bölümlü düzen
+        self.left_width = self.screen_width // 3  # Sol bölüm
+        self.right_width = self.screen_width - self.left_width  # Sağ bölüm (matris)
+        
+        # Sol bölüm - 2'ye bölünmüş
+        self.left_top_height = self.screen_height // 2  # Sol üst (status)
+        self.left_bottom_height = self.screen_height - self.left_top_height  # Sol alt (komut çıktısı)
+        
+        # Sağ bölüm (matris)
+        self.matrix_width = self.right_width
+        self.matrix_height = self.screen_height
+        
+        # Komut satırı yüksekliği
         self.command_height = 40
-        self.matrix_height = self.screen_height - self.header_height - self.status_height - self.command_height
         
         # Matrix görüntü için
         self.matrix_lines = []
         self.max_matrix_lines = 20
         self.last_matrix_update = datetime.now()
         
+        # Komut çıktısı için
+        self.command_output_lines = []
+        self.max_command_output_lines = 15
+        
         # Görsel matris için
         self.matrix_size = 40  # 40x40 matris (20 eksik + 20 fazla)
-        self.cell_size = 12  # Her hücre 12x12 pixel
-        self.matrix_x = (self.screen_width - self.matrix_size * self.cell_size) // 2  # Ortada
-        self.matrix_y = self.header_height + self.status_height + 20  # Üst panelin altında
+        self.cell_size = min(self.matrix_width // self.matrix_size, self.matrix_height // self.matrix_size)  # Dinamik boyut
+        self.matrix_x = self.left_width + (self.matrix_width - self.matrix_size * self.cell_size) // 2  # Sağ bölümde ortada
+        self.matrix_y = (self.matrix_height - self.matrix_size * self.cell_size) // 2  # Dikey ortada
         
         # Matris başlangıç koordinatları
         self.matrix_start_x = 0
@@ -134,78 +148,87 @@ class SpaceGamePygame:
         self.screen.fill(Colors.BLACK)
     
     def print_header(self):
-        """Başlık çiz"""
-        header_text = "UZAY OYUNU - PYGAME SIMÜLASYONU"
-        text_surface = self.font_large.render(header_text, True, Colors.CYAN)
-        text_rect = text_surface.get_rect(center=(self.screen_width // 2, self.header_height // 2))
-        self.screen.blit(text_surface, text_rect)
-        
-        # Alt çizgi
-        pygame.draw.line(self.screen, Colors.CYAN, (0, self.header_height), (self.screen_width, self.header_height), 2)
+        """Başlık çiz - kaldırıldı"""
+        pass
     
     def print_status_panel(self):
-        """Üst durum panelini çiz"""
+        """Sol üst durum panelini çiz"""
         if not self.mission_started or not self.ship:
             return
         
-        y_start = self.header_height + 10
+        # Sol üst bölüm arka planı
+        status_rect = pygame.Rect(0, 0, self.left_width, self.left_top_height)
+        pygame.draw.rect(self.screen, Colors.DARK_GRAY, status_rect)
+        pygame.draw.rect(self.screen, Colors.GREEN, status_rect, 2)
         
-        # Enerji bilgisi
-        energy_percent = (self.ship.energy / self.ship.max_energy) * 100
-        energy_color = Colors.GREEN if energy_percent > 50 else Colors.YELLOW if energy_percent > 25 else Colors.RED
+        y_start = 20
         
-        energy_text = f"ENERJİ: {self.ship.energy}/{self.ship.max_energy} ({energy_percent:.1f}%)"
-        energy_surface = self.font_medium.render(energy_text, True, energy_color)
-        self.screen.blit(energy_surface, (10, y_start))
-        
-        # Hız bilgisi
-        speed_text = f"HIZ: {self.ship.speed} dk/10 matris"
-        speed_surface = self.font_medium.render(speed_text, True, Colors.BLUE)
-        self.screen.blit(speed_surface, (400, y_start))
-        
-        # Yön bilgisi
-        y_start += 25
-        direction_text = f"YÖN: {self.ship.direction.value.upper()}"
-        direction_surface = self.font_medium.render(direction_text, True, Colors.WHITE)
-        self.screen.blit(direction_surface, (10, y_start))
-        
-        # Durum bilgisi
-        status_text = "HAREKET HALİNDE" if self.ship.is_moving else "DURAKLAMADA"
-        status_color = Colors.GREEN if self.ship.is_moving else Colors.YELLOW
-        status_surface = self.font_medium.render(f"DURUM: {status_text}", True, status_color)
-        self.screen.blit(status_surface, (400, y_start))
-        
-        # Görev süresi
-        y_start += 25
+        # Görev süresi (yeşil)
         mission_time = self.get_mission_time()
-        mission_surface = self.font_medium.render(f"GÖREV SÜRESİ: {mission_time}", True, Colors.CYAN)
+        mission_surface = self.font_large.render(f"GÖREV SÜRESİ: {mission_time}", True, Colors.GREEN)
         self.screen.blit(mission_surface, (10, y_start))
         
-        # Hareket süresi
-        if self.ship.is_moving:
-            movement_time = self.get_movement_time()
-            movement_surface = self.font_medium.render(f"HAREKET SÜRESİ: {movement_time}", True, Colors.MAGENTA)
-            self.screen.blit(movement_surface, (400, y_start))
+        # Hız bilgisi (yeşil)
+        speed_text = f"HIZ: {self.ship.speed} dk/10 matris"
+        speed_surface = self.font_large.render(speed_text, True, Colors.GREEN)
+        self.screen.blit(speed_surface, (10, y_start + 40))
         
-        # Hız hesaplama bilgileri
-        y_start += 25
-        speed_info_text = f"HIZ HESAPLAMA: 1 dk = {self.points_per_minute} nokta, 10 dk = {self.points_per_10_minutes} nokta"
-        speed_info_surface = self.font_small.render(speed_info_text, True, Colors.CYAN)
-        self.screen.blit(speed_info_surface, (10, y_start))
+        # Enerji bilgisi (yeşil)
+        energy_percent = (self.ship.energy / self.ship.max_energy) * 100
+        energy_text = f"ENERJİ: {self.ship.energy}/{self.ship.max_energy} ({energy_percent:.1f}%)"
+        energy_surface = self.font_large.render(energy_text, True, Colors.GREEN)
+        self.screen.blit(energy_surface, (10, y_start + 80))
         
-        y_start += 20
-        time_info_text = f"ZAMAN HESAPLAMA: 1 nokta = {self.seconds_per_point:.1f} saniye, Güncelleme = {self.seconds_per_point:.1f} saniyede bir"
-        time_info_surface = self.font_small.render(time_info_text, True, Colors.CYAN)
-        self.screen.blit(time_info_surface, (10, y_start))
+        # X koordinatı (yeşil)
+        x_text = f"X: {self.ship.x}"
+        x_surface = self.font_large.render(x_text, True, Colors.GREEN)
+        self.screen.blit(x_surface, (10, y_start + 120))
+        
+        # Y koordinatı (yeşil)
+        y_text = f"Y: {self.ship.y}"
+        y_surface = self.font_large.render(y_text, True, Colors.GREEN)
+        self.screen.blit(y_surface, (10, y_start + 160))
+        
+        # Durum (hareket halindeyse yeşil, duruksa kırmızı)
+        status_text = "HAREKET HALİNDE" if self.ship.is_moving else "DURAK"
+        status_color = Colors.GREEN if self.ship.is_moving else Colors.RED
+        status_surface = self.font_large.render(status_text, True, status_color)
+        self.screen.blit(status_surface, (10, y_start + 200))
+    
+    def print_command_output_panel(self):
+        """Sol alt komut çıktısı panelini çiz"""
+        # Sol alt bölüm arka planı
+        output_rect = pygame.Rect(0, self.left_top_height, self.left_width, self.left_bottom_height)
+        pygame.draw.rect(self.screen, Colors.BLACK, output_rect)
+        pygame.draw.rect(self.screen, Colors.CYAN, output_rect, 2)
+        
+        # Komut çıktısı başlığı
+        title_surface = self.font_medium.render("KOMUT ÇIKTISI", True, Colors.CYAN)
+        self.screen.blit(title_surface, (10, self.left_top_height + 10))
+        
+        # Komut çıktısı satırları
+        y_offset = self.left_top_height + 40
+        for i, line in enumerate(self.command_output_lines[-self.max_command_output_lines:]):
+            if i * 20 + y_offset < self.screen_height - 20:  # Ekran sınırları içinde
+                line_surface = self.font_small.render(line, True, Colors.WHITE)
+                self.screen.blit(line_surface, (10, y_offset + i * 20))
+    
+    def add_command_output(self, text: str, color=Colors.WHITE):
+        """Komut çıktısına satır ekle"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.command_output_lines.append(f"[{timestamp}] {text}")
+        if len(self.command_output_lines) > self.max_command_output_lines:
+            self.command_output_lines.pop(0)
     
     def print_matrix_display(self):
-        """Matrix tarzı akışkan görüntü"""
+        """Sağ bölümde matrix görüntü"""
         if not self.ship:
             return
         
-        # Matrix alanını temizle
-        matrix_rect = pygame.Rect(0, self.header_height + self.status_height, self.screen_width, self.matrix_height)
+        # Sağ bölüm arka planı
+        matrix_rect = pygame.Rect(self.left_width, 0, self.matrix_width, self.matrix_height)
         pygame.draw.rect(self.screen, Colors.BLACK, matrix_rect)
+        pygame.draw.rect(self.screen, Colors.GREEN, matrix_rect, 2)
         
         # 100x100 görsel matris çiz
         self.draw_visual_matrix()
@@ -327,6 +350,58 @@ class SpaceGamePygame:
         else:
             self.add_matrix_line(f"SCAN SONUCU ({x}:{y}): 10 nokta içinde cisim bulunamadı", Colors.RED)
     
+    def teleport_ship(self, x: int, y: int):
+        """Gemi teleportasyonu"""
+        # Sınır kontrolü
+        if x < 0 or x >= self.universe_size or y < 0 or y >= self.universe_size:
+            self.last_command_output = f"HATA: Koordinatlar evren sınırları dışında! (0-{self.universe_size-1})"
+            self.add_command_output(f"HATA: Koordinatlar evren sınırları dışında! (0-{self.universe_size-1})")
+            return
+        
+        # Enerji kontrolü
+        energy_cost = int(self.ship.max_energy * 0.05)  # %5 enerji
+        if self.ship.energy < energy_cost:
+            self.last_command_output = f"HATA: Yetersiz enerji! Gerekli: {energy_cost}, Mevcut: {self.ship.energy}"
+            self.add_command_output(f"HATA: Yetersiz enerji! Gerekli: {energy_cost}, Mevcut: {self.ship.energy}")
+            return
+        
+        # Eski pozisyonu kaydet
+        old_x, old_y = self.ship.x, self.ship.y
+        
+        # Enerji tüket
+        self.ship.energy -= energy_cost
+        
+        # Pozisyonu güncelle
+        self.ship.x = x
+        self.ship.y = y
+        
+        # Matris merkezini güncelle (teleportasyon sonrası)
+        self.last_matrix_center_x = x
+        self.last_matrix_center_y = y
+        
+        # Motoru durdur (teleportasyon sonrası güvenlik)
+        self.ship.is_moving = False
+        
+        # Başarı mesajı
+        self.last_command_output = f"TELEPORTASYON BAŞARILI! ({old_x}, {old_y}) → ({x}, {y})"
+        
+        # Komut çıktısına ekle
+        self.add_command_output(f"({x},{y}) koordinatına ışınlanıldı")
+        self.add_command_output(f"Enerji tüketimi: {energy_cost} birim")
+        
+        # Matrix görüntüye bilgi ekle
+        self.add_matrix_line(f"TELEPORTASYON: ({old_x}, {old_y}) → ({x}, {y})", Colors.MAGENTA)
+        self.add_matrix_line(f"ENERJİ TÜKETİMİ: {energy_cost} birim (%5)", Colors.MAGENTA)
+        self.add_matrix_line(f"MATRİS MERKEZİ: ({x}, {y})", Colors.CYAN)
+        
+        # Çarpışma kontrolü
+        collisions = self.check_collision(x, y)
+        if collisions:
+            self.add_matrix_line("ALERT: Teleportasyon sonrası çarpışma!", Colors.RED)
+            self.add_command_output("ALERT: Teleportasyon sonrası çarpışma!")
+            for obj in collisions:
+                self.add_matrix_line(f"  - {obj.name} ({obj.obj_type.value}) ile çarpışıldı!", Colors.RED)
+    
     def add_matrix_line(self, text: str, color: tuple = Colors.GREEN):
         """Matrix görüntüye yeni satır ekle"""
         current_time = datetime.now().strftime('%H:%M:%S')
@@ -346,15 +421,41 @@ class SpaceGamePygame:
         pygame.draw.rect(self.screen, Colors.DARK_GRAY, command_rect)
         pygame.draw.line(self.screen, Colors.GRAY, (0, y_pos - 10), (self.screen_width, y_pos - 10), 1)
         
-        # Komut prompt'u
-        prompt_text = "Komut: "
-        prompt_surface = self.font_medium.render(prompt_text, True, Colors.WHITE)
+        # Dinamik prompt oluştur
+        if self.ship and self.mission_started:
+            # Evren adını al (son yüklenen evren)
+            universe_name = "unknown"
+            if hasattr(self, 'current_universe_name'):
+                universe_name = self.current_universe_name
+            
+            # Yön bilgisi
+            direction_text = self.ship.direction.value.upper()
+            
+            # Durum bilgisi
+            status_text = "HAREKET HALİNDE" if self.ship.is_moving else "DURAK"
+            
+            # Prompt oluştur
+            prompt_text = f"{universe_name}@{direction_text}-{status_text}:$ "
+        else:
+            prompt_text = "uzay@başlatma:$ "
+        
+        # Prompt'u çiz
+        prompt_surface = self.font_medium.render(prompt_text, True, Colors.GREEN)
         self.screen.blit(prompt_surface, (10, y_pos))
         
-        # Son komut çıktısı
+        # Yanıp sönen cursor
+        current_time = datetime.now()
+        if int(current_time.microsecond / 500000) % 2:  # Her 0.5 saniyede bir yanıp söner
+            cursor_x = 10 + prompt_surface.get_width()
+            cursor_surface = self.font_medium.render("_", True, Colors.WHITE)
+            self.screen.blit(cursor_surface, (cursor_x, y_pos))
+        
+        # Son komut çıktısı (hata mesajları kırmızı)
         if self.last_command_output:
-            output_surface = self.font_small.render(self.last_command_output, True, Colors.YELLOW)
-            self.screen.blit(output_surface, (100, y_pos))
+            # Hata mesajlarını kırmızı renkte göster
+            color = Colors.RED if self.last_command_output.startswith("HATA:") else Colors.YELLOW
+            output_surface = self.font_small.render(self.last_command_output, True, color)
+            self.screen.blit(output_surface, (10, y_pos + 20))
     
     def get_mission_time(self) -> str:
         """Görev süresini hesapla"""
@@ -478,109 +579,172 @@ class SpaceGamePygame:
         """Komutu işle"""
         parts = command.strip().split()
         if not parts:
+            self.last_command_output = "HATA: Boş komut!"
             return
         
         cmd = parts[0].lower()
         self.last_command_output = ""
         
-        if cmd == "createuniverse":
-            if len(parts) < 3:
-                self.last_command_output = "HATA: createUniverse size=<sayı> name=<isim> formatında kullanın"
+        if cmd == "go":
+            # Parametreleri parse et
+            name = None
+            size = 14400  # Default boyut
+            velocity = 1  # Default hız
+            force_create = False  # Zorla oluştur flag'i
+            
+            i = 1
+            while i < len(parts):
+                part = parts[i]
+                
+                if part in ["--name", "-n"]:
+                    if i + 1 < len(parts):
+                        name = parts[i + 1]
+                        i += 2
+                    else:
+                        self.last_command_output = "HATA: --name (-n) parametresi için değer gerekli!"
+                        self.add_command_output("HATA: --name (-n) parametresi için değer gerekli!")
+                        return
+                elif part in ["--size", "-s"]:
+                    if i + 1 < len(parts):
+                        try:
+                            size = int(parts[i + 1])
+                            if size < 14400:
+                                self.last_command_output = "HATA: Evren boyutu en az 14400 olmalı!"
+                                self.add_command_output("HATA: Evren boyutu en az 14400 olmalı!")
+                                return
+                            i += 2
+                        except ValueError:
+                            self.last_command_output = "HATA: Geçersiz boyut değeri!"
+                            self.add_command_output("HATA: Geçersiz boyut değeri!")
+                            return
+                    else:
+                        self.last_command_output = "HATA: --size (-s) parametresi için değer gerekli!"
+                        self.add_command_output("HATA: --size (-s) parametresi için değer gerekli!")
+                        return
+                elif part in ["--velocity", "-v"]:
+                    if i + 1 < len(parts):
+                        try:
+                            velocity = int(parts[i + 1])
+                            i += 2
+                        except ValueError:
+                            self.last_command_output = "HATA: Geçersiz hız değeri!"
+                            self.add_command_output("HATA: Geçersiz hız değeri!")
+                            return
+                    else:
+                        self.last_command_output = "HATA: --velocity (-v) parametresi için değer gerekli!"
+                        self.add_command_output("HATA: --velocity (-v) parametresi için değer gerekli!")
+                        return
+                elif part in ["--create", "-c"]:
+                    force_create = True
+                    i += 1
+                else:
+                    i += 1
+            
+            # Name parametresi zorunlu
+            if name is None:
+                self.last_command_output = "HATA: --name (-n) parametresi zorunlu! Örnek: go --name myspaces"
+                self.add_command_output("HATA: --name (-n) parametresi zorunlu! Örnek: go --name myspaces")
                 return
             
-            try:
-                size = int(parts[1].split('=')[1])
-                name = parts[2].split('=')[1]
-                
-                if size < 14400:
-                    self.last_command_output = "HATA: Evren boyutu en az 14400 olmalı"
-                    return
-                
+            # Mevcut evreni kontrol et
+            universe_file = f"universes/{name}.json"
+            self.current_universe_name = name  # Evren adını kaydet
+            
+            if os.path.exists(universe_file) and not force_create:
+                # Mevcut evreni yükle
+                self.load_universe(universe_file)
+                self.start_mission(velocity)
+                self.last_command_output = f"Mevcut evren yüklendi: {name}.json ({self.universe_size}x{self.universe_size})"
+                self.add_command_output(f"Evren yüklendi: {name}.json")
+                self.add_command_output(f"Boyut: {self.universe_size}x{self.universe_size}")
+                self.add_command_output(f"Gök cisimleri: {len(self.celestial_objects)}")
+            else:
+                # Yeni evren oluştur
                 self.universe_size = size
                 self.create_universe(name)
-                self.last_command_output = f"Evren oluşturuldu: {name}.json ({size}x{size})"
-                
-            except (ValueError, IndexError):
-                self.last_command_output = "HATA: Geçersiz parametreler"
+                self.start_mission(velocity)
+                self.last_command_output = f"Yeni evren oluşturuldu: {name}.json ({self.universe_size}x{self.universe_size})"
+                self.add_command_output(f"Yeni evren oluşturuldu: {name}.json")
+                self.add_command_output(f"Boyut: {self.universe_size}x{self.universe_size}")
+                self.add_command_output(f"Gök cisimleri: {len(self.celestial_objects)}")
         
-        elif cmd == "startmission":
-            if not self.celestial_objects:
-                self.last_command_output = "HATA: Önce evren oluşturulmalı!"
-                return
-            
-            max_speed = 1
-            if len(parts) > 1 and parts[1].startswith('max='):
-                try:
-                    max_speed = int(parts[1].split('=')[1])
-                except ValueError:
-                    pass
-            
-            self.start_mission(max_speed)
-            self.last_command_output = f"Görev başlatıldı! Hız: {max_speed} dk/10 matris"
-        
-        elif cmd == "startengine":
+        elif cmd in ["engine", "e"]:
             if not self.ship:
                 self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
                 return
             
-            self.start_engine()
-            self.last_command_output = "Motor başlatıldı!"
+            if len(parts) < 2:
+                self.last_command_output = "HATA: Kullanım: engine on/off veya e on/off"
+                self.add_command_output("HATA: Kullanım: engine on/off veya e on/off")
+                return
+            
+            action = parts[1].lower()
+            if action == "on":
+                self.start_engine()
+                self.last_command_output = "Engine is ON"
+                self.add_command_output("Engine is ON")
+            elif action == "off":
+                self.stop_engine()
+                self.last_command_output = "Engine is OFF"
+                self.add_command_output("Engine is OFF")
+            else:
+                self.last_command_output = "HATA: Geçersiz parametre! 'on' veya 'off' kullanın"
+                self.add_command_output("HATA: Geçersiz parametre! 'on' veya 'off' kullanın")
         
-        elif cmd == "stopengine":
+        elif cmd in ["rotate", "r"]:
             if not self.ship:
                 self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
                 return
             
-            self.stop_engine()
-            self.last_command_output = "Motor durduruldu!"
-        
-        elif cmd == "rotateright":
-            if not self.ship:
-                self.last_command_output = "HATA: Önce görev başlatılmalı!"
+            if len(parts) < 2:
+                self.last_command_output = "HATA: Kullanım: rotate <yön> veya r <yön>"
+                self.add_command_output("HATA: Kullanım: rotate <yön> veya r <yön>")
+                self.add_command_output("Yönler: right/r, left/l, up/u, down/d")
                 return
             
-            self.rotate_right()
-            self.last_command_output = "Sağa döndü!"
-        
-        elif cmd == "rotateleft":
-            if not self.ship:
-                self.last_command_output = "HATA: Önce görev başlatılmalı!"
-                return
+            direction = parts[1].lower()
             
-            self.rotate_left()
-            self.last_command_output = "Sola döndü!"
-        
-        elif cmd == "rotateup":
-            if not self.ship:
-                self.last_command_output = "HATA: Önce görev başlatılmalı!"
-                return
-            
-            self.rotate_up()
-            self.last_command_output = "Yukarı döndü!"
-        
-        elif cmd == "rotatedown":
-            if not self.ship:
-                self.last_command_output = "HATA: Önce görev başlatılmalı!"
-                return
-            
-            self.rotate_down()
-            self.last_command_output = "Aşağı döndü!"
+            if direction in ["right", "r"]:
+                self.rotate_right()
+                self.last_command_output = "Sağa döndü!"
+                self.add_command_output("Sağa döndü!")
+            elif direction in ["left", "l"]:
+                self.rotate_left()
+                self.last_command_output = "Sola döndü!"
+                self.add_command_output("Sola döndü!")
+            elif direction in ["up", "u"]:
+                self.rotate_up()
+                self.last_command_output = "Yukarı döndü!"
+                self.add_command_output("Yukarı döndü!")
+            elif direction in ["down", "d"]:
+                self.rotate_down()
+                self.last_command_output = "Aşağı döndü!"
+                self.add_command_output("Aşağı döndü!")
+            else:
+                self.last_command_output = "HATA: Geçersiz yön! Kullanım: right/r, left/l, up/u, down/d"
+                self.add_command_output("HATA: Geçersiz yön! Kullanım: right/r, left/l, up/u, down/d")
         
         elif cmd == "turnback":
             if not self.ship:
                 self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
                 return
             
             self.turn_back()
             self.last_command_output = "Geri döndü!"
+            self.add_command_output("Geri döndü!")
         
         elif cmd == "scan":
             if not self.ship:
                 self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
                 return
             
             if len(parts) < 2:
                 self.last_command_output = "HATA: Kullanım: scan <x:y> (örn: scan 2303:4712)"
+                self.add_command_output("HATA: Kullanım: scan <x:y> (örn: scan 2303:4712)")
                 return
             
             try:
@@ -588,31 +752,263 @@ class SpaceGamePygame:
                 x = int(coords[0])
                 y = int(coords[1])
                 self.scan_coordinates(x, y)
+                self.add_command_output(f"Koordinat taranıyor: ({x},{y})")
             except (ValueError, IndexError):
                 self.last_command_output = "HATA: Geçersiz koordinat formatı! (örn: scan 2303:4712)"
+                self.add_command_output("HATA: Geçersiz koordinat formatı! (örn: scan 2303:4712)")
+        
+        elif cmd == "tp" or cmd == "teleportation":
+            if not self.ship:
+                self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
+                return
+            
+            if len(parts) < 2:
+                self.last_command_output = "HATA: Kullanım: tp <x:y> (örn: tp 2303:4716)"
+                self.add_command_output("HATA: Kullanım: tp <x:y> (örn: tp 2303:4716)")
+                return
+            
+            try:
+                coords = parts[1].split(":")
+                x = int(coords[0])
+                y = int(coords[1])
+                self.teleport_ship(x, y)
+            except (ValueError, IndexError):
+                self.last_command_output = "HATA: Geçersiz koordinat formatı! (örn: tp 2303:4716)"
+                self.add_command_output("HATA: Geçersiz koordinat formatı! (örn: tp 2303:4716)")
+        
+        elif cmd in ["list", "ls"]:
+            self.list_universes()
+            self.add_command_output("Evren listesi gösteriliyor...")
+        
+        elif cmd == "test":
+            self.last_command_output = "Test komutu çalışıyor!"
+            self.add_matrix_line("Test komutu başarılı!", Colors.GREEN)
+            self.add_command_output("Test komutu başarılı!")
+        
+        elif cmd in ["speed", "s"]:
+            if not self.ship:
+                self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
+                return
+            
+            # Hız değiştirme kontrolü
+            if len(parts) >= 2:
+                try:
+                    points_per_minute = int(parts[1])
+                    if 10 <= points_per_minute <= 200:
+                        old_speed = self.ship.speed
+                        old_points_per_minute = 10 / old_speed
+                        
+                        # Yeni hızı hesapla (1 dakikada kaç nokta)
+                        self.ship.speed = 10 / points_per_minute  # speed = 10 / points_per_minute
+                        self.calculate_speed_info()
+                        
+                        # Enerji tüketimini güncelle (oransal)
+                        # Temel enerji: 14400 (10 nokta/dk için)
+                        # Yeni enerji: 14400 * (points_per_minute / 10)
+                        self.ship.max_energy = int(14400 * (points_per_minute / 10))
+                        self.ship.energy = self.ship.max_energy
+                        
+                        self.last_command_output = f"Hız değiştirildi: {old_points_per_minute:.1f} → {points_per_minute} nokta/dk"
+                        self.add_command_output(f"Hız değiştirildi: {old_points_per_minute:.1f} → {points_per_minute} nokta/dk")
+                        self.add_command_output(f"Enerji kapasitesi: {self.ship.max_energy}")
+                        self.add_command_output(f"1 nokta: {60/points_per_minute:.1f} saniye")
+                        return
+                    else:
+                        self.last_command_output = "HATA: Hız 10-200 arasında olmalı!"
+                        self.add_command_output("HATA: Hız 10-200 arasında olmalı!")
+                        return
+                except ValueError:
+                    self.last_command_output = "HATA: Geçersiz hız değeri!"
+                    self.add_command_output("HATA: Geçersiz hız değeri!")
+                    return
+            
+            # Hız analizi (parametre yoksa)
+            points_per_minute = 10 / self.ship.speed
+            seconds_per_point = 60 / points_per_minute
+            points_per_hour = points_per_minute * 60
+            
+            speed_info = f"HIZ ANALİZİ:"
+            self.add_command_output(speed_info)
+            self.add_command_output(f"1 dakikada: {points_per_minute:.1f} nokta")
+            self.add_command_output(f"1 nokta: {seconds_per_point:.1f} saniye")
+            self.add_command_output(f"1 saatte: {points_per_hour:.1f} nokta")
+            
+            self.last_command_output = f"Hız analizi: 1dk={points_per_minute:.1f}pt, 1pt={seconds_per_point:.1f}sn, 1sa={points_per_hour:.1f}pt"
+        
+        elif cmd in ["refresh", "r"]:
+            if not self.ship:
+                self.last_command_output = "HATA: Önce görev başlatılmalı!"
+                self.add_command_output("HATA: Önce görev başlatılmalı!")
+                return
+            
+            # Güncelleme süresi bilgisi
+            update_interval = self.seconds_per_point
+            self.add_command_output(f"GÜNCELLEME SÜRESİ: {update_interval:.1f} saniye")
+            self.add_command_output(f"Matris her {update_interval:.1f} saniyede bir güncellenir")
+            
+            self.last_command_output = f"Güncelleme süresi: {update_interval:.1f} saniye"
+        
+        elif cmd == "help":
+            self.show_help()
+            self.add_command_output("Yardım menüsü gösteriliyor...")
         
         elif cmd == "quit" or cmd == "exit":
             self.running = False
             self.last_command_output = "Oyundan çıkılıyor..."
+            self.add_command_output("Oyundan çıkılıyor...")
         
         else:
             self.last_command_output = f"Bilinmeyen komut: {cmd}"
+            self.add_command_output(f"Bilinmeyen komut: {cmd}")
+    
+    def show_help(self):
+        """Yardım ekranını göster"""
+        help_text = """
+=== UZAY OYUNU KOMUTLARI ===
+
+BAŞLATMA:
+  go --name <isim> [--size <boyut>] [--velocity <hız>]  - Evren oluştur/yükle ve görev başlat
+  Örnek: go --name myspaces --size 21000 --velocity 2
+  Örnek: go -n altay -s 14400 -v 1
+  Not: Mevcut evren varsa yükler, yoksa yeni oluşturur
+
+GEMİ KONTROLÜ:
+  startEngine                             - Motoru başlat
+  stopEngine                              - Motoru durdur
+  rotateRight/Left/Up/Down               - Yön değiştir
+  turnBack                                - Geri dön
+
+TELEPORTASYON:
+  tp <x:y>                                - Işınlan (örn: tp 2303:4716)
+  teleportation <x:y>                     - Işınlan (alternatif)
+
+TARAMA:
+  scan <x:y>                              - Koordinat tara (örn: scan 2303:4712)
+
+EVREN YÖNETİMİ:
+  list veya ls                            - Mevcut evrenleri listele
+
+DİĞER:
+  status                                  - Detaylı durum
+  time                                    - Mevcut zaman
+  help                                    - Bu yardım
+  quit/exit                               - Çıkış
+
+PARAMETRELER:
+  --name, -n     : Evren adı (zorunlu)
+  --size, -s     : Evren boyutu (varsayılan: 14400)
+  --velocity, -v : Gemi hızı (varsayılan: 1)
+
+NOT: Teleportasyon enerjinin %5'ini tüketir!
+        """
+        self.last_command_output = help_text.strip()
+    
+    def load_universe(self, file_path: str):
+        """Mevcut evreni yükle"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            self.universe_size = data['size']
+            self.celestial_objects = []
+            
+            for obj_data in data['objects']:
+                obj = CelestialObject(
+                    x=obj_data['x'],
+                    y=obj_data['y'],
+                    obj_type=CelestialType(obj_data['type']),
+                    name=obj_data['name']
+                )
+                self.celestial_objects.append(obj)
+            
+            self.universe_created = True
+            self.add_matrix_line(f"Evren yüklendi: {file_path} ({self.universe_size}x{self.universe_size})")
+            self.add_matrix_line(f"Toplam {len(self.celestial_objects)} gök cismi yüklendi")
+            # last_command_output zaten process_command'da set ediliyor
+            
+        except Exception as e:
+            self.last_command_output = f"HATA: Evren yüklenemedi: {str(e)}"
+    
+    def list_universes(self):
+        """Universes klasöründeki evrenleri listele"""
+        try:
+            # universes klasörünü oluştur
+            os.makedirs("universes", exist_ok=True)
+            
+            # JSON dosyalarını bul
+            universe_files = []
+            for file in os.listdir("universes"):
+                if file.endswith('.json'):
+                    universe_files.append(file)
+            
+            if not universe_files:
+                self.last_command_output = "Universes klasöründe evren bulunamadı"
+                self.add_command_output("Universes klasöründe evren bulunamadı")
+                return
+            
+            # Dosyaları listele
+            universe_list = "MEVCUT EVRENLER:\n"
+            for i, file in enumerate(sorted(universe_files), 1):
+                name = file.replace('.json', '')
+                universe_list += f"  {i}. {name}\n"
+                self.add_command_output(f"{i}. {name}")
+            
+            self.last_command_output = universe_list.strip()
+            
+        except Exception as e:
+            self.last_command_output = f"HATA: Evren listesi alınamadı: {str(e)}"
+            self.add_command_output(f"HATA: Evren listesi alınamadı: {str(e)}")
     
     def create_universe(self, name: str):
         """Evren oluştur"""
         self.celestial_objects = []
         
-        # Rastgele gök cisimleri oluştur
-        num_objects = random.randint(50, 200)
+        # Toplam gök cismi sayısı = evren boyutunun %0.0001'i (çok daha az)
+        total_objects = max(100, int(self.universe_size * self.universe_size * 0.0001))
         
-        for _ in range(num_objects):
+        # Gök cismi türlerini dağıt
+        sun_count = max(1, int(total_objects * 0.1))  # %10 güneş
+        black_hole_count = max(1, int(total_objects * 0.05))  # %5 karadelik
+        asteroid_count = max(1, int(total_objects * 0.3))  # %30 asteroid
+        planet_count = max(1, int(total_objects * 0.4))  # %40 gezegen
+        comet_count = max(1, int(total_objects * 0.15))  # %15 kuyruklu yıldız
+        
+        # Güneşler
+        for i in range(sun_count):
             x = random.randint(0, self.universe_size - 1)
             y = random.randint(0, self.universe_size - 1)
-            obj_type = random.choice(list(CelestialType))
-            obj = CelestialObject(x, y, obj_type)
-            self.celestial_objects.append(obj)
+            self.celestial_objects.append(CelestialObject(x, y, CelestialType.SUN, f"Güneş-{i+1}"))
+        
+        # Karadelikler
+        for i in range(black_hole_count):
+            x = random.randint(0, self.universe_size - 1)
+            y = random.randint(0, self.universe_size - 1)
+            self.celestial_objects.append(CelestialObject(x, y, CelestialType.BLACK_HOLE, f"Karadelik-{i+1}"))
+        
+        # Asteroid kuşakları
+        for i in range(asteroid_count):
+            x = random.randint(0, self.universe_size - 1)
+            y = random.randint(0, self.universe_size - 1)
+            self.celestial_objects.append(CelestialObject(x, y, CelestialType.ASTEROID_BELT, f"Asteroid-{i+1}"))
+        
+        # Gezegenler
+        for i in range(planet_count):
+            x = random.randint(0, self.universe_size - 1)
+            y = random.randint(0, self.universe_size - 1)
+            self.celestial_objects.append(CelestialObject(x, y, CelestialType.PLANET, f"Gezegen-{i+1}"))
+        
+        # Kuyruklu yıldızlar
+        for i in range(comet_count):
+            x = random.randint(0, self.universe_size - 1)
+            y = random.randint(0, self.universe_size - 1)
+            self.celestial_objects.append(CelestialObject(x, y, CelestialType.COMET, f"Kuyruklu-{i+1}"))
         
         # JSON dosyasına kaydet
+        # universes klasörünü oluştur
+        os.makedirs("universes", exist_ok=True)
+        
         universe_data = {
             "size": self.universe_size,
             "objects": [
@@ -626,7 +1022,8 @@ class SpaceGamePygame:
             ]
         }
         
-        with open(f"{name}.json", "w", encoding="utf-8") as f:
+        file_path = f"universes/{name}.json"
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(universe_data, f, indent=2, ensure_ascii=False)
     
     def start_mission(self, max_speed: int = 1):
@@ -717,8 +1114,9 @@ class SpaceGamePygame:
         """Ana oyun döngüsü"""
         # Başlangıç mesajları
         self.add_matrix_line("Uzay Oyunu başlatıldı!")
-        self.add_matrix_line("Komutlar: createUniverse, startMission, startEngine, stopEngine")
-        self.add_matrix_line("Hareket: rotateRight, rotateLeft, rotateUp, rotateDown, turnBack")
+        self.add_matrix_line("Başlatma: go --name <isim> [--size <boyut>] [--velocity <hız>]")
+        self.add_matrix_line("Örnek: go --name myspaces --size 21000 --velocity 2")
+        self.add_matrix_line("Hareket: startEngine, stopEngine, rotateRight/Left/Up/Down, turnBack")
         self.add_matrix_line("Çıkış: quit veya exit")
         
         # Komut satırı için
@@ -731,17 +1129,20 @@ class SpaceGamePygame:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                         # Enter tuşu - komut işle
-                        if self.current_command:
-                            self.process_command(self.current_command)
-                            self.current_command = ""
+                        if self.current_command.strip():
+                            self.process_command(self.current_command.strip())
+                        self.current_command = ""
                     elif event.key == pygame.K_BACKSPACE:
                         # Backspace - karakter sil
                         if self.current_command:
                             self.current_command = self.current_command[:-1]
-                    else:
-                        # Karakter ekle
+                    elif event.key == pygame.K_ESCAPE:
+                        # Escape - komutu temizle
+                        self.current_command = ""
+                    elif event.unicode and event.unicode.isprintable():
+                        # Sadece yazdırılabilir karakterleri ekle
                         self.current_command += event.unicode
             
             # Gemi pozisyonunu güncelle
@@ -753,14 +1154,27 @@ class SpaceGamePygame:
             # UI elemanlarını çiz
             self.print_header()
             self.print_status_panel()
+            self.print_command_output_panel()
             self.print_matrix_display()
             self.print_command_line()
             
-            # Mevcut komutu göster
-            y_pos = self.screen_height - self.command_height + 10
-            command_text = f"Komut: {self.current_command}_"
-            command_surface = self.font_medium.render(command_text, True, Colors.WHITE)
-            self.screen.blit(command_surface, (10, y_pos))
+            # Mevcut komutu göster (prompt'un yanında)
+            if self.current_command:
+                y_pos = self.screen_height - self.command_height + 10
+                # Prompt genişliğini hesapla
+                if self.ship and self.mission_started:
+                    universe_name = getattr(self, 'current_universe_name', 'unknown')
+                    direction_text = self.ship.direction.value.upper()
+                    status_text = "HAREKET HALİNDE" if self.ship.is_moving else "DURAK"
+                    prompt_text = f"{universe_name}@{direction_text}-{status_text}:$ "
+                else:
+                    prompt_text = "uzay@başlatma:$ "
+                
+                prompt_surface = self.font_medium.render(prompt_text, True, Colors.GREEN)
+                command_x = 10 + prompt_surface.get_width()
+                
+                command_surface = self.font_medium.render(self.current_command, True, Colors.WHITE)
+                self.screen.blit(command_surface, (command_x, y_pos))
             
             # Ekranı güncelle
             pygame.display.flip()

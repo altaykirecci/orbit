@@ -1,0 +1,13 @@
+{
+  "name": "gora",
+  "size": 500,
+  "chunk_size": 100,
+  "created": "2025-10-29T02:48:55.957935",
+  "preset": "normal",
+  "statistics": {
+    "stars": 125,
+    "black_holes": 0,
+    "planets": 313,
+    "asteroid_belts": 37
+  }
+}

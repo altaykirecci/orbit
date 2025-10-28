@@ -37,7 +37,7 @@ class Direction(Enum):
     LEFT = "left"
     RIGHT = "right"
 
-# Gök cismi türleri
+# Celestial object types
 class CelestialType(Enum):
     SUN = "sun"
     BLACK_HOLE = "black_hole"
@@ -45,7 +45,58 @@ class CelestialType(Enum):
     PLANET = "planet"
     COMET = "comet"
 
-# Gök cismi sınıfı
+# Star types
+class StarType(Enum):
+    M = "M"      # Red dwarf (70%)
+    K = "K"      # Orange dwarf (15%)
+    G = "G"      # Yellow dwarf (8%)
+    HOT = "Hot"  # F/A/B/O hot stars (7%)
+
+# Black hole classes
+class BlackHoleClass(Enum):
+    STELLAR = "stellar"           # Stellar mass (85%)
+    INTERMEDIATE = "intermediate"  # Intermediate mass (14%)
+    SUPERMASSIVE = "super"        # Supermassive (1%)
+
+# Planet types
+class PlanetType(Enum):
+    ROCKY = "rocky"   # Rocky (inner planets)
+    GAS = "gas"       # Gas giant (outer planets)
+    ICE = "ice"       # Ice planet (middle distance)
+
+# Resource types
+class ResourceType(Enum):
+    # Metals
+    IRON = "Fe"
+    COPPER = "Cu"
+    GOLD = "Au"
+    SILVER = "Ag"
+    BAUXITE = "Al2O3"
+    CHROMIUM = "Cr"
+    LEAD = "Pb"
+    ZINC = "Zn"
+    NICKEL = "Ni"
+    BORON = "B"
+    
+    # Energy Resources
+    COAL = "C"
+    LIGNITE = "Lignite"
+    SULFUR = "S"
+    URANIUM = "U"
+    THORIUM = "Th"
+    
+    # Gases
+    CARBON = "C"
+    OXYGEN = "O2"
+    NITROGEN = "N2"
+
+# Resource richness levels
+class ResourceRichness(Enum):
+    POOR = "poor"
+    NORMAL = "normal"
+    RICH = "rich"
+
+# Celestial object class
 class CelestialObject:
     def __init__(self, x: int, y: int, obj_type: CelestialType, name: str = ""):
         self.x = x
@@ -53,14 +104,64 @@ class CelestialObject:
         self.obj_type = obj_type
         self.name = name or f"{obj_type.value}_{random.randint(1, 1000)}"
 
-# Gemi sınıfı
+# Star class
+class Star:
+    def __init__(self, x: float, y: float, star_type: StarType, radius: float, star_id: int):
+        self.x = x
+        self.y = y
+        self.star_type = star_type
+        self.radius = radius
+        self.star_id = star_id
+        self.planets = []
+        self.asteroid_belts = []
+
+# Black hole class
+class BlackHole:
+    def __init__(self, x: float, y: float, bh_class: BlackHoleClass, bh_id: int):
+        self.x = x
+        self.y = y
+        self.bh_class = bh_class
+        self.bh_id = bh_id
+        
+        # Influence radius and exclusion radius
+        self.R_infl = {"stellar": 400, "intermediate": 2500, "super": 10000}[bh_class.value]
+        self.R_excl = 1.5 * self.R_infl
+
+# Planet class
+class Planet:
+    def __init__(self, x: float, y: float, orbit_radius: float, orbit_angle: float, 
+                 planet_type: PlanetType, radius: float, star_id: int, planet_id: int):
+        self.x = x
+        self.y = y
+        self.orbit_radius = orbit_radius
+        self.orbit_angle = orbit_angle
+        self.planet_type = planet_type
+        self.radius = radius
+        self.star_id = star_id
+        self.planet_id = planet_id
+        self.resources = {}
+
+# Asteroid belt class
+class AsteroidBelt:
+    def __init__(self, star_id: int, center_radius: float, width: float, belt_id: int):
+        self.star_id = star_id
+        self.center_radius = center_radius
+        self.width = width
+        self.belt_id = belt_id
+        self.radius = width / 2  # Belt radius as half of width
+        self.fragment_count = random.randint(20, 200)
+        self.resource_pool = {}
+
+# Ship class
 class Ship:
-    def __init__(self, x: int, y: int, max_energy: int = 14400):
+    def __init__(self, x: int, y: int, universe_size: int = 200):
         self.x = x
         self.y = y
         self.direction = Direction.UP
-        self.energy = max_energy
-        self.max_energy = max_energy
+        # Enerji: evrendeki tüm noktaları 3 defa ziyaret edecek kadar
+        # Her nokta değişikliğinde 1 birim enerji kaybedecek
+        self.max_energy = universe_size * universe_size * 3
+        self.energy = self.max_energy
         self.speed = 1  # dakika cinsinden
         self.is_moving = False
         self.start_time: Optional[datetime] = None
@@ -71,20 +172,20 @@ class ChunkManager:
     def __init__(self, universe_size, chunk_size=100):
         self.universe_size = universe_size
         self.chunk_size = chunk_size
-        self.chunks = {}  # Yüklenen chunk'lar
+        self.chunks = {}  # Loaded chunks
         self.loaded_chunks = set()
-        self.max_loaded_chunks = 25  # Maksimum 5x5 alan (500x500)
+        self.max_loaded_chunks = 25  # Maximum 5x5 area (500x500)
     
     def get_chunk_coords(self, x, y):
-        """Koordinatları chunk koordinatlarına çevir"""
+        """Convert coordinates to chunk coordinates"""
         return (x // self.chunk_size, y // self.chunk_size)
     
     def get_chunk_file_path(self, chunk_x, chunk_y, universe_name):
-        """Chunk dosya yolunu oluştur"""
+        """Generate chunk file path"""
         return f"universes/{universe_name}/chunk_{chunk_x}_{chunk_y}.json"
     
     def load_chunk(self, chunk_x, chunk_y, universe_name):
-        """Chunk'ı yükle"""
+        """Load chunk from file"""
         if (chunk_x, chunk_y) in self.loaded_chunks:
             return self.chunks.get((chunk_x, chunk_y), [])
         
@@ -97,12 +198,12 @@ class ChunkManager:
                 self.loaded_chunks.add((chunk_x, chunk_y))
                 return chunk_data
             except Exception as e:
-                print(f"Chunk yükleme hatası: {e}")
+                print(f"Error loading chunk: {e}")
                 return []
         return []
     
     def unload_distant_chunks(self, ship_x, ship_y, max_distance=2):
-        """Uzak chunk'ları bellekten çıkar"""
+        """Unload distant chunks from memory"""
         ship_chunk = self.get_chunk_coords(ship_x, ship_y)
         chunks_to_remove = []
         
@@ -118,21 +219,21 @@ class ChunkManager:
             self.loaded_chunks.remove(chunk_coord)
     
     def get_objects_in_area(self, min_x, min_y, max_x, max_y, universe_name):
-        """Belirtilen alandaki objeleri getir"""
+        """Return all objects in specified area"""
         objects = []
         
-        # Bu alanı kapsayan chunk'ları hesapla
+        # Calculate chunks covering this area
         min_chunk_x = min_x // self.chunk_size
         max_chunk_x = max_x // self.chunk_size
         min_chunk_y = min_y // self.chunk_size
         max_chunk_y = max_y // self.chunk_size
         
-        # Her chunk'ı yükle
+        # Load each chunk
         for chunk_x in range(min_chunk_x, max_chunk_x + 1):
             for chunk_y in range(min_chunk_y, max_chunk_y + 1):
                 chunk_objects = self.load_chunk(chunk_x, chunk_y, universe_name)
                 
-                # Chunk içindeki objeleri filtrele
+                # Filter objects in chunk
                 for obj in chunk_objects:
                     if (min_x <= obj['x'] <= max_x and 
                         min_y <= obj['y'] <= max_y):
@@ -140,14 +241,104 @@ class ChunkManager:
         
         return objects
 
-# Ana oyun sınıfı
+# Universe generation constants
+class UniverseConstants:
+    BASE_STAR_DENOMINATOR = 2000      # normal preset: 1 star / 2000 area units
+    MIN_STAR_COUNT = 3
+    MAX_STAR_COUNT = 20000            # game / performance limit
+    BH_DENOMINATOR = 1_000_000       # 1 BH per 1M area (normal)
+    ASTEROID_BELT_PROB = 0.30        # asteroid belt creation probability per star
+    PLANET_MEAN_PER_STAR = 3.5       # average planet count (Poisson)
+    PLANET_ORBIT_RATIO_RANGE = (1.2, 1.6)
+    MIN_STAR_SPACING_FACTOR = 0.5     # D_min = factor * sqrt(A/N)
+    BH_EXCLUSION_FACTOR = 1.5         # exclusion radius = factor * R_infl
+    
+    # Resource base abundance values
+    BASE_RESOURCE_ABUNDANCE = {
+        # Metals - Common to rare
+        ResourceType.IRON: {"planet": 0.8, "asteroid": 1.0},
+        ResourceType.COPPER: {"planet": 0.6, "asteroid": 0.8},
+        ResourceType.LEAD: {"planet": 0.4, "asteroid": 0.6},
+        ResourceType.ZINC: {"planet": 0.3, "asteroid": 0.5},
+        ResourceType.NICKEL: {"planet": 0.2, "asteroid": 0.4},
+        ResourceType.CHROMIUM: {"planet": 0.15, "asteroid": 0.3},
+        ResourceType.BAUXITE: {"planet": 0.1, "asteroid": 0.2},
+        ResourceType.SILVER: {"planet": 0.05, "asteroid": 0.15},
+        ResourceType.GOLD: {"planet": 0.02, "asteroid": 0.08},
+        ResourceType.BORON: {"planet": 0.01, "asteroid": 0.05},
+        
+        # Energy Resources
+        ResourceType.COAL: {"planet": 0.7, "asteroid": 0.3},
+        ResourceType.LIGNITE: {"planet": 0.5, "asteroid": 0.2},
+        ResourceType.SULFUR: {"planet": 0.3, "asteroid": 0.4},
+        ResourceType.URANIUM: {"planet": 0.01, "asteroid": 0.05},
+        ResourceType.THORIUM: {"planet": 0.005, "asteroid": 0.02},
+        
+        # Gases - Atmospheric
+        ResourceType.CARBON: {"planet": 0.4, "asteroid": 0.1},
+        ResourceType.OXYGEN: {"planet": 0.6, "asteroid": 0.2},
+        ResourceType.NITROGEN: {"planet": 0.5, "asteroid": 0.1}
+    }
+    
+    # Resource richness thresholds
+    RESOURCE_THRESHOLD_HIGH = 1.0
+    RESOURCE_THRESHOLD_LOW = 0.2
+
+# Locale Manager class
+class LocaleManager:
+    def __init__(self, default_language="en"):
+        self.current_language = default_language
+        self.translations = {}
+        self.load_language(default_language)
+    
+    def load_language(self, language_code):
+        """Load language file"""
+        try:
+            with open(f"loc/{language_code}.json", 'r', encoding='utf-8') as f:
+                self.translations = json.load(f)
+                self.current_language = language_code
+        except FileNotFoundError:
+            print(f"Language file not found: loc/{language_code}.json")
+            # Fallback to English
+            if language_code != "en":
+                self.load_language("en")
+        except Exception as e:
+            print(f"Error loading language {language_code}: {e}")
+            if language_code != "en":
+                self.load_language("en")
+    
+    def get(self, key, **kwargs):
+        """Get translated string with optional formatting"""
+        try:
+            # Navigate through nested keys (e.g., "help.title")
+            keys = key.split('.')
+            value = self.translations
+            for k in keys:
+                value = value[k]
+            
+            # Format string if kwargs provided
+            if kwargs:
+                return value.format(**kwargs)
+            return value
+        except (KeyError, TypeError):
+            # Return key if translation not found
+            return key
+    
+    def set_language(self, language_code):
+        """Change language"""
+        self.load_language(language_code)
+
+# Main game class
 class SpaceGamePygame:
     def __init__(self):
-        # Pygame ayarları - Yeni tasarım için daha geniş ekran
+        # Initialize locale manager
+        self.locale = LocaleManager("en")  # Default to English
+        
+        # Pygame settings - Wider screen for new design
         self.screen_width = 1400
         self.screen_height = 900
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption("Orbit - Space Game")
+        pygame.display.set_caption(self.locale.get("game_title"))
         
         # Font ayarları - Orbitron + Liberation Mono
         try:
@@ -187,6 +378,7 @@ class SpaceGamePygame:
         self.current_universe_name = "uzay"
         self.mission_started = False
         self.last_position_update = datetime.now()
+        self.matrix_objects = []  # Matrix'teki gök cisimleri
         
         # UI alanları - Yeni 3 bölümlü düzen
         self.left_width = int(self.screen_width * 0.30)      # Sol %30 - Linux konsolu
@@ -348,21 +540,32 @@ class SpaceGamePygame:
     
     def print_matrix_display(self):
         """Orta bölümde matrix görüntü"""
-        if not self.ship:
+        if not self.ship or not self.mission_started:
             return
         
         # Orta bölüm arka planı (siyah) - Matris alanı konsol alanının bittiği yerden başlar
-        # Matrix'i orta panel içinde 15 pixel margin ile çiz
+        # Matrix'i orta panel içinde ortalayacak şekilde hesapla
         matrix_margin = 15
-        matrix_rect = pygame.Rect(
-            self.left_width + matrix_margin,  # Sol margin
-            matrix_margin,  # Üst margin
-            self.matrix_width - (2 * matrix_margin),  # Genişlik - iki yan margin
-            self.matrix_height - (2 * matrix_margin)  # Yükseklik - üst ve alt margin
-        )
         
-        # Cell size'ı matrix_rect boyutlarına göre hesapla
-        self.cell_size = min(matrix_rect.width // self.matrix_size, matrix_rect.height // self.matrix_size)
+        # Önce cell size'ı hesapla (kare hücreler için)
+        available_width = self.matrix_width - (2 * matrix_margin)
+        available_height = self.matrix_height - (2 * matrix_margin)
+        self.cell_size = min(available_width // self.matrix_size, available_height // self.matrix_size)
+        
+        # Matrix'in gerçek boyutlarını hesapla
+        matrix_pixel_width = self.matrix_size * self.cell_size
+        matrix_pixel_height = self.matrix_size * self.cell_size
+        
+        # Matrix'i orta panel içinde ortalayacak şekilde konumlandır
+        matrix_x = self.left_width + (self.matrix_width - matrix_pixel_width) // 2
+        matrix_y = (self.matrix_height - matrix_pixel_height) // 2
+        
+        matrix_rect = pygame.Rect(
+            matrix_x,  # Ortalanmış X konumu
+            matrix_y,  # Ortalanmış Y konumu
+            matrix_pixel_width,  # Matrix genişliği
+            matrix_pixel_height  # Matrix yüksekliği
+        )
         
         pygame.draw.rect(self.screen, Colors.BLACK, matrix_rect)
         pygame.draw.rect(self.screen, Colors.GREEN, matrix_rect, 2)  # Matris alanı etrafında yeşil çizgi
@@ -376,7 +579,7 @@ class SpaceGamePygame:
     
     def print_dashboard_panel(self):
         """Sağ üst - Dashboard paneli"""
-        if not self.mission_started or not self.ship:
+        if not self.mission_started:
             return
         
         # Dashboard arka planı (siyah) - Matrix alanının bittiği yerden başlar
@@ -410,60 +613,51 @@ class SpaceGamePygame:
         
         # Yön bilgisi kaldırıldı - koordinat renkleri yönü gösteriyor
         
-        # Hız bilgisi (sarı)
-        points_per_minute = 10 / self.ship.speed
-        speed_text = f"{points_per_minute:.0f} Nokta/dk"
+        # Hız bilgisi (sarı) - Saniye/Nokta
+        speed_text = f"{self.ship.speed:.2f} sn/nokta"
         speed_surface = self.font_medium.render(speed_text, True, Colors.YELLOW)
         self.screen.blit(speed_surface, (x_start, y_start + 110))
+        
+        # 24 saat hız bilgisi (yeşil)
+        if hasattr(self, 'required_24h_speed') and self.required_24h_speed > 0:
+            required_speed_text = f"24h: {self.required_seconds_per_point:.2f} sn/nokta"
+            required_speed_surface = self.font_medium.render(required_speed_text, True, Colors.GREEN)
+            self.screen.blit(required_speed_surface, (x_start, y_start + 130))
         
         # Enerji bilgisi (sarı)
         energy_text = f"{self.ship.energy} Nokta"
         energy_surface = self.font_medium.render(energy_text, True, Colors.YELLOW)
-        self.screen.blit(energy_surface, (x_start, y_start + 140))
+        self.screen.blit(energy_surface, (x_start, y_start + 185))
         
         energy_percent = (self.ship.energy / self.ship.max_energy) * 100
         energy_percent_text = f"(%{energy_percent:.1f})"
         energy_percent_surface = self.font_medium.render(energy_percent_text, True, Colors.YELLOW)
-        self.screen.blit(energy_percent_surface, (x_start, y_start + 160))
+        self.screen.blit(energy_percent_surface, (x_start, y_start + 205))
     
     def print_radar_panel(self):
-        """Sağ orta - Radar paneli"""
-        if not self.mission_started or not self.ship:
+        """Sağ orta - Katalog paneli"""
+        if not self.mission_started:
             return
         
-        # Radar arka planı (siyah) - Matrix alanının bittiği yerden başlar
-        radar_x = self.left_width + self.center_width
-        radar_y = self.dashboard_height
-        radar_rect = pygame.Rect(radar_x, radar_y, self.right_width, self.radar_height)
-        pygame.draw.rect(self.screen, Colors.BLACK, radar_rect)
+        # Katalog arka planı (siyah) - Matrix alanının bittiği yerden başlar
+        catalog_x = self.left_width + self.center_width
+        catalog_y = self.dashboard_height
+        catalog_rect = pygame.Rect(catalog_x, catalog_y, self.right_width, self.radar_height)
+        pygame.draw.rect(self.screen, Colors.BLACK, catalog_rect)
         
-        y_start = radar_y + 10
-        x_start = radar_x + 10
+        y_start = catalog_y + 10
+        x_start = catalog_x + 10
         
-        # Radar başlığı
-        radar_title = self.font_large.render("Radar", True, Colors.WHITE)
-        self.screen.blit(radar_title, (x_start, y_start))
+        # Katalog başlığı
+        catalog_title = self.font_large.render("Catalog", True, Colors.WHITE)
+        self.screen.blit(catalog_title, (x_start, y_start))
         
-        # Radar menzili
-        radar_range = self.font_medium.render("20 Nokta", True, Colors.WHITE)
-        self.screen.blit(radar_range, (x_start, y_start + 30))
-        
-        # Radar alarm sistemi - Gök cismi varsa yanıp sönen alarm
-        if self.radar_alarm:
-            # Yanıp sönme efekti için timer
-            self.alarm_blink_timer += 1
-            if self.alarm_blink_timer > 30:  # 30 frame'de bir yanıp söner
-                self.alarm_blink_timer = 0
-            
-            # Yanıp sönme kontrolü
-            if self.alarm_blink_timer < 15:  # İlk 15 frame görünür
-                alarm_text = "[ALARM] GÖK CİSİMLERİ"
-                radar_alert = self.font_medium.render(alarm_text, True, Colors.RED)
-                self.screen.blit(radar_alert, (x_start, y_start + 60))
+        # Katalog istatistikleri
+        self.print_catalog_statistics(x_start, y_start + 40)
     
     def print_probe_panel(self):
         """Sağ alt - Sonda paneli"""
-        if not self.mission_started or not self.ship:
+        if not self.mission_started:
             return
         
         # Sonda arka planı (siyah) - Matrix alanının bittiği yerden başlar
@@ -653,21 +847,22 @@ class SpaceGamePygame:
         self.draw_coordinate_labels(matrix_rect)
         
         # Matrix alanındaki tüm gök cisimlerini bir seferde yükle (verimli)
-        matrix_objects = self.chunk_manager.get_objects_in_area(
+        self.matrix_objects = self.chunk_manager.get_objects_in_area(
             self.matrix_start_x, self.matrix_start_y,
             self.matrix_start_x + self.matrix_size - 1,
             self.matrix_start_y + self.matrix_size - 1,
             self.current_universe_name
         )
         
+        
         # Gök cisimlerini koordinat bazlı dictionary'ye çevir (hızlı arama)
         objects_by_coord = {}
-        for obj in matrix_objects:
+        for obj in self.matrix_objects:
             coord_key = (obj['x'], obj['y'])
             objects_by_coord[coord_key] = obj
         
         # Radar alarm kontrolü - Matrix'te gök cismi var mı?
-        self.radar_alarm = len(matrix_objects) > 0
+        self.radar_alarm = len(self.matrix_objects) > 0
         
         # Her hücreyi kontrol et ve çiz
         for i in range(self.matrix_size):
@@ -814,13 +1009,13 @@ class SpaceGamePygame:
         """Gemi teleportasyonu"""
         # Sınır kontrolü
         if x < 0 or x >= self.universe_size or y < 0 or y >= self.universe_size:
-            self.add_console_line(f"HATA: Koordinatlar evren sınırları dışında! (0-{self.universe_size-1})", Colors.RED)
+            self.add_console_line(self.locale.get("errors.coordinates_out_of_bounds", max=self.universe_size-1), Colors.RED)
             return
         
-        # Enerji kontrolü
-        energy_cost = int(self.ship.max_energy * 0.05)  # %5 enerji
+        # Enerji kontrolü - Her nokta değişikliğinde 1 birim enerji
+        energy_cost = 1
         if self.ship.energy < energy_cost:
-            self.add_console_line(f"HATA: Yetersiz enerji! Gerekli: {energy_cost}, Mevcut: {self.ship.energy}", Colors.RED)
+            self.add_console_line(f"ERROR: Insufficient energy! Required: {energy_cost}, Available: {self.ship.energy}", Colors.RED)
             return
         
         # Eski pozisyonu kaydet
@@ -837,19 +1032,28 @@ class SpaceGamePygame:
         self.last_matrix_center_x = x
         self.last_matrix_center_y = y
         
+        # Matrix başlangıç koordinatlarını güncelle (teleportasyon sonrası)
+        half_size = self.matrix_size // 2
+        self.matrix_start_x = x - half_size
+        self.matrix_start_y = y - half_size
+        
+        # Chunk'ları güncelle (teleportasyon sonrası)
+        self.chunk_manager.unload_distant_chunks(x, y)
+        
         # Motoru durdur (teleportasyon sonrası güvenlik)
         self.ship.is_moving = False
         
         # Başarı mesajı
         
         # Komut çıktısına ekle
-        self.add_console_line(f"({x},{y}) koordinatına ışınlanıldı")
-        self.add_console_line(f"Enerji tüketimi: {energy_cost} birim")
+        self.add_console_line(self.locale.get("commands.teleported", x=x, y=y))
+        self.add_console_line(self.locale.get("commands.energy_cost", cost=energy_cost))
         
         # Matrix görüntüye bilgi ekle
         self.add_matrix_line(f"TELEPORTASYON: ({old_x}, {old_y}) → ({x}, {y})", Colors.MAGENTA)
-        self.add_matrix_line(f"ENERJİ TÜKETİMİ: {energy_cost} birim (%5)", Colors.MAGENTA)
+        self.add_matrix_line(f"ENERJİ TÜKETİMİ: {energy_cost} birim", Colors.MAGENTA)
         self.add_matrix_line(f"MATRİS MERKEZİ: ({x}, {y})", Colors.CYAN)
+        self.add_matrix_line(f"MATRİS ALANI: ({self.matrix_start_x}, {self.matrix_start_y}) - ({self.matrix_start_x + self.matrix_size - 1}, {self.matrix_start_y + self.matrix_size - 1})", Colors.CYAN)
         
         # Çarpışma kontrolü
         collisions = self.check_collision(x, y)
@@ -935,12 +1139,217 @@ class SpaceGamePygame:
         if not self.ship:
             return
         
-        # 1 dakikada 10 nokta, 10 dakikada 100 nokta
-        self.points_per_minute = 10
-        self.points_per_10_minutes = self.points_per_minute * 10  # 100 nokta
+        # ship.speed artık doğrudan saniye/nokta değeri
+        self.seconds_per_point = self.ship.speed
         
-        # 1 noktaya kaç saniyede gidiyor
-        self.seconds_per_point = 60 / self.points_per_minute  # 6 saniye
+        # 24 saatte tüm noktalara ulaşma hesaplaması
+        self.calculate_24h_speed()
+    
+    def calculate_24h_speed(self):
+        """24 saatte tüm noktalara ulaşmak için gereken hızı hesapla"""
+        if not self.ship or not hasattr(self, 'universe_size'):
+            return
+        
+        total_points = self.universe_size * self.universe_size
+        seconds_in_24h = 24 * 60 * 60  # 86400 saniye
+        
+        # Gerekli hız: nokta başına kaç saniye
+        self.required_seconds_per_point = seconds_in_24h / total_points
+        
+        # Hız değeri (ship.speed formatına çevir)
+        # ship.speed artık doğrudan saniye/nokta değeri
+        self.required_24h_speed = self.required_seconds_per_point
+    
+    def save_celestial_to_catalog(self, celestial_name):
+        """Save celestial object to catalog"""
+        # Find celestial object in current matrix objects
+        celestial_obj = None
+        for obj in self.matrix_objects:
+            if obj.get('name') == celestial_name:
+                celestial_obj = obj
+                break
+        
+        if not celestial_obj:
+            self.add_console_line(f"ERROR: Celestial object '{celestial_name}' not found in matrix!", Colors.RED)
+            return
+        
+        # Load existing catalog
+        catalog = self.load_catalog()
+        
+        # Create catalog entry
+        catalog_entry = {
+            "name": celestial_obj.get('name'),
+            "type": celestial_obj.get('type'),
+            "x": celestial_obj.get('x'),
+            "y": celestial_obj.get('y'),
+            "prop": celestial_obj.get('prop'),
+            "resources": celestial_obj.get('resources', {}),
+            "saved_at": {
+                "ship_x": self.ship.x,
+                "ship_y": self.ship.y,
+                "timestamp": datetime.now().isoformat()
+            }
+        }
+        
+        # Add to catalog
+        catalog.append(catalog_entry)
+        
+        # Save catalog
+        self.save_catalog(catalog)
+        
+        self.add_console_line(f"Celestial object '{celestial_name}' saved to catalog!", Colors.GREEN)
+    
+    def list_catalog(self):
+        """List catalog contents"""
+        catalog = self.load_catalog()
+        
+        if not catalog:
+            self.add_console_line("Catalog is empty.", Colors.YELLOW)
+            return
+        
+        self.add_console_line("=== CELESTIAL CATALOG ===", Colors.CYAN)
+        for i, entry in enumerate(catalog, 1):
+            self.add_console_line(f"{i:2d}. {entry['name']} ({entry['type']})", Colors.WHITE)
+            self.add_console_line(f"    Position: ({entry['x']}, {entry['y']})", Colors.WHITE)
+            self.add_console_line(f"    Type: {entry['prop']}", Colors.YELLOW)
+            if entry.get('resources'):
+                self.add_console_line(f"    Resources: {len(entry['resources'])} types", Colors.GREEN)
+            self.add_console_line(f"    Saved at: ({entry['saved_at']['ship_x']}, {entry['saved_at']['ship_y']})", Colors.CYAN)
+            self.add_console_line("")
+    
+    def teleport_to_catalog_object(self, celestial_name):
+        """Teleport to catalog object"""
+        catalog = self.load_catalog()
+        
+        # Find celestial object in catalog
+        celestial_obj = None
+        for entry in catalog:
+            if entry['name'] == celestial_name:
+                celestial_obj = entry
+                break
+        
+        if not celestial_obj:
+            self.add_console_line(f"ERROR: Celestial object '{celestial_name}' not found in catalog!", Colors.RED)
+            return
+        
+        # Teleport to coordinates
+        self.teleport_ship(celestial_obj['x'], celestial_obj['y'])
+        self.add_console_line(f"Teleported to catalog object '{celestial_name}'!", Colors.GREEN)
+    
+    def load_catalog(self):
+        """Load catalog from session cats.json"""
+        try:
+            if not hasattr(self, 'current_session_name') or not self.current_session_name:
+                return []
+            
+            catalog_path = f"sessions/{self.current_session_name}/cats.json"
+            with open(catalog_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return []
+        except Exception as e:
+            self.add_console_line(f"Error loading catalog: {e}", Colors.RED)
+            return []
+    
+    def save_catalog(self, catalog):
+        """Save catalog to session cats.json"""
+        try:
+            if not hasattr(self, 'current_session_name') or not self.current_session_name:
+                self.add_console_line("ERROR: No active session!", Colors.RED)
+                return
+            
+            catalog_path = f"sessions/{self.current_session_name}/cats.json"
+            with open(catalog_path, 'w', encoding='utf-8') as f:
+                json.dump(catalog, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            self.add_console_line(f"Error saving catalog: {e}", Colors.RED)
+    
+    def setup_session_structure(self, session_name):
+        """Create session folder structure"""
+        try:
+            # Create sessions folder if it doesn't exist
+            sessions_dir = "sessions"
+            os.makedirs(sessions_dir, exist_ok=True)
+            
+            # Create session folder
+            session_dir = f"sessions/{session_name}"
+            os.makedirs(session_dir, exist_ok=True)
+            
+            # Create maps subfolder
+            maps_dir = f"sessions/{session_name}/maps"
+            os.makedirs(maps_dir, exist_ok=True)
+            
+            self.add_console_line(f"Session structure created: {session_dir}", Colors.GREEN)
+            
+        except Exception as e:
+            self.add_console_line(f"Error creating session structure: {e}", Colors.RED)
+    
+    def print_catalog_statistics(self, x_start, y_start):
+        """Print catalog statistics"""
+        catalog = self.load_catalog()
+        
+        if not catalog:
+            no_catalog_text = "No objects in catalog"
+            no_catalog_surface = self.font_medium.render(no_catalog_text, True, Colors.LIGHT_GRAY)
+            self.screen.blit(no_catalog_surface, (x_start, y_start))
+            return
+        
+        # Count by type
+        type_counts = {}
+        prop_counts = {}
+        total_resources = {}
+        
+        for entry in catalog:
+            obj_type = entry.get('type', 'unknown')
+            prop = entry.get('prop', 'unknown')
+            
+            # Count by type
+            type_counts[obj_type] = type_counts.get(obj_type, 0) + 1
+            
+            # Count by prop
+            prop_counts[prop] = prop_counts.get(prop, 0) + 1
+            
+            # Count resources
+            resources = entry.get('resources', {})
+            for resource_type, resource_data in resources.items():
+                if isinstance(resource_data, dict):
+                    score = resource_data.get('score', 0)
+                    total_resources[resource_type] = total_resources.get(resource_type, 0) + score
+        
+        # Display statistics
+        y_offset = y_start
+        
+        # Total count
+        total_text = f"Total: {len(catalog)}"
+        total_surface = self.font_medium.render(total_text, True, Colors.WHITE)
+        self.screen.blit(total_surface, (x_start, y_offset))
+        y_offset += 25
+        
+        # Type counts
+        for obj_type, count in sorted(type_counts.items()):
+            type_text = f"{obj_type}: {count}"
+            type_surface = self.font_small.render(type_text, True, Colors.CYAN)
+            self.screen.blit(type_surface, (x_start, y_offset))
+            y_offset += 20
+        
+        y_offset += 10
+        
+        # Prop counts
+        for prop, count in sorted(prop_counts.items()):
+            prop_text = f"{prop}: {count}"
+            prop_surface = self.font_small.render(prop_text, True, Colors.YELLOW)
+            self.screen.blit(prop_surface, (x_start, y_offset))
+            y_offset += 20
+        
+        y_offset += 10
+        
+        # Resource totals
+        if total_resources:
+            for resource_type, total_score in sorted(total_resources.items()):
+                resource_text = f"{resource_type}: {total_score:.1f}"
+                resource_surface = self.font_small.render(resource_text, True, Colors.GREEN)
+                self.screen.blit(resource_surface, (x_start, y_offset))
+                y_offset += 20
     
     def get_next_position(self):
         """Bir sonraki pozisyonu hesapla"""
@@ -963,18 +1372,18 @@ class SpaceGamePygame:
         return x, y
     
     def update_ship_position(self):
-        """Gemi pozisyonunu güncelle - 6 saniyede bir"""
+        """Gemi pozisyonunu güncelle - ship.speed saniyede bir"""
         if not self.ship or not self.ship.is_moving:
             return
         
         now = datetime.now()
         time_diff = (now - self.last_position_update).total_seconds()  # saniye cinsinden
         
-        # 6 saniyede bir pozisyon güncelle
-        if time_diff >= self.seconds_per_point:
-            # Enerji tüketimi
-            energy_cost_per_point = 1 if self.ship.speed == 1 else self.ship.max_energy / (self.ship.speed * 10)
-            self.ship.energy -= int(energy_cost_per_point)
+        # ship.speed saniyede bir pozisyon güncelle
+        if time_diff >= self.ship.speed:
+            # Enerji tüketimi - Her nokta değişikliğinde 1 birim enerji
+            energy_cost_per_point = 1
+            self.ship.energy -= energy_cost_per_point
             
             if self.ship.energy <= 0:
                 self.add_matrix_line("ALERT: Enerji bitti! Motor durduruldu.")
@@ -1034,149 +1443,72 @@ class SpaceGamePygame:
         cmd = parts[0].lower()
         
         if cmd == "go":
-            # Parametreleri parse et
-            name = None
-            size = 500  # Default boyut
-            velocity = 1  # Default hız
-            force_create = False  # Zorla oluştur flag'i
-            preset = "normal"  # Default preset
-            
-            i = 1
-            while i < len(parts):
-                part = parts[i]
-                
-                if part in ["--name", "-n"]:
-                    if i + 1 < len(parts):
-                        name = parts[i + 1]
-                        i += 2
-                    else:
-                        self.add_console_line("HATA: --name (-n) parametresi için değer gerekli!", Colors.RED)
-                        return
-                elif part in ["--size", "-s"]:
-                    if i + 1 < len(parts):
-                        try:
-                            size = int(parts[i + 1])
-                            if size < 100 or size > 1000:
-                                self.add_console_line("HATA: Evren boyutu 100-1000 arasında olmalı!")
-                                return
-                            i += 2
-                        except ValueError:
-                            self.add_console_line("HATA: Geçersiz boyut değeri!")
-                            return
-                    else:
-                        self.add_console_line("HATA: --size (-s) parametresi için değer gerekli!")
-                        return
-                elif part in ["--velocity", "-v"]:
-                    if i + 1 < len(parts):
-                        try:
-                            velocity = int(parts[i + 1])
-                            i += 2
-                        except ValueError:
-                            self.add_console_line("HATA: Geçersiz hız değeri!")
-                            return
-                    else:
-                        self.add_console_line("HATA: --velocity (-v) parametresi için değer gerekli!")
-                        return
-                elif part in ["--create", "-c"]:
-                    force_create = True
-                    i += 1
-                elif part in ["--preset", "-p"]:
-                    if i + 1 < len(parts):
-                        preset = parts[i + 1].lower()
-                        i += 2
-                    else:
-                        self.add_console_line("HATA: --preset (-p) parametresi için değer gerekli!")
-                        self.add_console_line("Kullanılabilir preset'ler: normal, sparse, dense, empty")
-                        return
-                else:
-                    i += 1
-            
-            # Name parametresi zorunlu
-            if name is None:
-                self.add_console_line("HATA: --name (-n) parametresi zorunlu! Örnek: go --name myspaces")
-                return
-            
-            # Mevcut evreni kontrol et
-            universe_file = f"universes/{name}.json"
-            self.current_universe_name = name  # Evren adını kaydet
-            
-            if os.path.exists(universe_file) and not force_create:
-                # Mevcut evreni yükle
-                self.load_universe(universe_file)
-                self.start_mission(velocity)
-                # Matrix boyutunu güncelle
-                self.matrix_size = self.calculate_matrix_size()
-                
-                self.add_console_line(f"Evren yüklendi: {name}.json")
-                self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
-                self.add_console_line(f"Matrix: {self.matrix_size}x{self.matrix_size}")
-                self.add_console_line(f"Gök cisimleri: {len(self.celestial_objects)}")
-            else:
-                # Yeni evren oluştur
-                self.universe_size = size
-                self.create_universe(name, preset)
-                self.start_mission(velocity)
-                # Matrix boyutunu güncelle
-                self.matrix_size = self.calculate_matrix_size()
-                
-                self.add_console_line(f"Yeni evren oluşturuldu: {name}.json")
-                self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
-                self.add_console_line(f"Matrix: {self.matrix_size}x{self.matrix_size}")
-                self.add_console_line(f"Gök cisimleri: {len(self.celestial_objects)}")
+            # DEPRECATED: go komutu artık kullanımdan kaldırıldı
+            self.add_console_line("⚠️  UYARI: 'go' komutu DEPRECATED (kullanımdan kaldırıldı)!", Colors.YELLOW)
+            self.add_console_line("")
+            self.add_console_line("Bunun yerine 'universe' veya 'u' komutunu kullanın:", Colors.CYAN)
+            self.add_console_line("  universe --name <isim> --size <boyut>", Colors.WHITE)
+            self.add_console_line("  u -n <isim> -s <boyut>", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnek:", Colors.CYAN)
+            self.add_console_line("  universe --name myuniverse --size 500", Colors.WHITE)
+            self.add_console_line("  u -n myuniverse -s 1000", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("'go' komutu hiçbir işlem yapmıyor.", Colors.RED)
         
         elif cmd in ["engine", "e"]:
             if not self.ship:
-                self.add_console_line("HATA: Önce görev başlatılmalı!")
+                self.add_console_line(self.locale.get("errors.universe_required"), Colors.RED)
                 return
             
             if len(parts) < 2:
-                self.add_console_line("HATA: Kullanım: engine on/off veya e on/off")
+                self.add_console_line("ERROR: Usage: engine on/off or e on/off", Colors.RED)
                 return
             
             action = parts[1].lower()
             if action == "on":
                 self.start_engine()
-                self.add_console_line("Engine is ON")
+                self.add_console_line(self.locale.get("commands.engine_started"))
             elif action == "off":
                 self.stop_engine()
-                self.add_console_line("Engine is OFF")
+                self.add_console_line(self.locale.get("commands.engine_stopped"))
             else:
-                self.add_console_line("HATA: Geçersiz parametre! 'on' veya 'off' kullanın")
+                self.add_console_line("ERROR: Invalid parameter! Use 'on' or 'off'", Colors.RED)
         
         elif cmd in ["rotate", "r"]:
             if not self.ship:
-                self.add_console_line("HATA: Önce görev başlatılmalı!")
+                self.add_console_line(self.locale.get("errors.universe_required"), Colors.RED)
                 return
             
             if len(parts) < 2:
-                self.add_console_line("HATA: Kullanım: rotate <yön> veya r <yön>")
-                self.add_console_line("Yönler: right/r, left/l, up/u, down/d")
+                self.add_console_line("ERROR: Usage: rotate <direction> or r <direction>", Colors.RED)
+                self.add_console_line("Directions: right/r, left/l, up/u, down/d", Colors.RED)
                 return
             
             direction = parts[1].lower()
             
             if direction in ["right", "r"]:
                 self.rotate_right()
-                self.add_console_line("Sağa döndü!")
+                self.add_console_line(self.locale.get("commands.rotated", direction="right"))
             elif direction in ["left", "l"]:
                 self.rotate_left()
-                self.add_console_line("Sola döndü!")
+                self.add_console_line(self.locale.get("commands.rotated", direction="left"))
             elif direction in ["up", "u"]:
                 self.rotate_up()
-                self.add_console_line("Yukarı döndü!")
+                self.add_console_line(self.locale.get("commands.rotated", direction="up"))
             elif direction in ["down", "d"]:
                 self.rotate_down()
-                self.add_console_line("Aşağı döndü!")
+                self.add_console_line(self.locale.get("commands.rotated", direction="down"))
             else:
-                self.add_console_line("HATA: Geçersiz yön! Kullanım: right/r, left/l, up/u, down/d")
+                self.add_console_line("ERROR: Invalid direction! Usage: right/r, left/l, up/u, down/d", Colors.RED)
         
         elif cmd == "turnback":
             if not self.ship:
-                self.add_console_line("HATA: Önce görev başlatılmalı!")
+                self.add_console_line(self.locale.get("errors.universe_required"), Colors.RED)
                 return
             
             self.turn_back()
-            self.add_console_line("Geri döndü!")
+            self.add_console_line(self.locale.get("commands.turned_back"))
         
         elif cmd == "scan":
             if not self.ship:
@@ -1202,7 +1534,16 @@ class SpaceGamePygame:
                 return
             
             if len(parts) < 2:
-                self.add_console_line("HATA: Kullanım: tp <x:y> (örn: tp 2303:4716)")
+                self.add_console_line("HATA: Kullanım: tp <x:y> veya tp --cat <name>")
+                return
+            
+            if parts[1] == "--cat":
+                if len(parts) < 3:
+                    self.add_console_line("ERROR: Celestial object name required! Usage: tp --cat <name>", Colors.RED)
+                    return
+                
+                celestial_name = parts[2]
+                self.teleport_to_catalog_object(celestial_name)
                 return
             
             try:
@@ -1229,41 +1570,36 @@ class SpaceGamePygame:
             # Hız değiştirme kontrolü
             if len(parts) >= 2:
                 try:
-                    points_per_minute = int(parts[1])
-                    if 10 <= points_per_minute <= 200:
+                    seconds_per_point = float(parts[1])
+                    if 0.1 <= seconds_per_point <= 60:
                         old_speed = self.ship.speed
-                        old_points_per_minute = 10 / old_speed
                         
-                        # Yeni hızı hesapla (1 dakikada kaç nokta)
-                        self.ship.speed = 10 / points_per_minute  # speed = 10 / points_per_minute
+                        # Yeni hızı ayarla (saniye/nokta)
+                        self.ship.speed = seconds_per_point
                         self.calculate_speed_info()
                         
-                        # Enerji tüketimini güncelle (oransal)
-                        # Temel enerji: 14400 (10 nokta/dk için)
-                        # Yeni enerji: 14400 * (points_per_minute / 10)
-                        self.ship.max_energy = int(14400 * (points_per_minute / 10))
-                        self.ship.energy = self.ship.max_energy
+                        # Enerji kapasitesi değişmez, sadece hareket hızı değişir
+                        # Enerji: evrendeki tüm noktaları 3 defa ziyaret edecek kadar sabit kalır
                         
-                        self.add_console_line(f"Hız değiştirildi: {old_points_per_minute:.1f} → {points_per_minute} nokta/dk")
-                        self.add_console_line(f"Enerji kapasitesi: {self.ship.max_energy}")
-                        self.add_console_line(f"1 nokta: {60/points_per_minute:.1f} saniye")
+                        self.add_console_line(self.locale.get("commands.speed_set", speed=seconds_per_point))
+                        self.add_console_line(f"1 nokta: {seconds_per_point:.2f} saniye")
                         return
                     else:
-                        self.add_console_line("HATA: Hız 10-200 arasında olmalı!")
+                        self.add_console_line("HATA: Hız 0.1-60 saniye arasında olmalı!")
                         return
                 except ValueError:
                     self.add_console_line("HATA: Geçersiz hız değeri!")
                     return
             
             # Hız analizi (parametre yoksa)
-            points_per_minute = 10 / self.ship.speed
-            seconds_per_point = 60 / points_per_minute
+            seconds_per_point = self.ship.speed
+            points_per_minute = 60 / seconds_per_point
             points_per_hour = points_per_minute * 60
             
             speed_info = f"HIZ ANALİZİ:"
             self.add_console_line(speed_info)
+            self.add_console_line(f"1 nokta: {seconds_per_point:.2f} saniye")
             self.add_console_line(f"1 dakikada: {points_per_minute:.1f} nokta")
-            self.add_console_line(f"1 nokta: {seconds_per_point:.1f} saniye")
             self.add_console_line(f"1 saatte: {points_per_hour:.1f} nokta")
             
         
@@ -1273,9 +1609,9 @@ class SpaceGamePygame:
                 return
             
             # Güncelleme süresi bilgisi
-            update_interval = self.seconds_per_point
-            self.add_console_line(f"GÜNCELLEME SÜRESİ: {update_interval:.1f} saniye")
-            self.add_console_line(f"Matris her {update_interval:.1f} saniyede bir güncellenir")
+            update_interval = self.ship.speed
+            self.add_console_line(f"GÜNCELLEME SÜRESİ: {update_interval:.2f} saniye")
+            self.add_console_line(f"Matris her {update_interval:.2f} saniyede bir güncellenir")
             
         
         elif cmd in ["clear", "cls"]:
@@ -1297,6 +1633,232 @@ class SpaceGamePygame:
                 status = "açık" if self.grid_enabled else "kapalı"
                 self.add_console_line(f"Grid durumu: {status}")
         
+        elif cmd in ["info", "i"]:
+            if len(parts) > 1:
+                sub_cmd = parts[1].lower()
+                if sub_cmd == "universe" or sub_cmd == "u":
+                    self.show_universe_info()
+                elif sub_cmd == "objects" or sub_cmd == "o":
+                    self.show_matrix_objects_info()
+                else:
+                    self.add_console_line("HATA: Geçersiz parametre! Kullanım: info universe/objects veya i u/o", Colors.RED)
+            else:
+                self.add_console_line("HATA: info universe/objects kullanın veya i u/o", Colors.RED)
+        
+        elif cmd in ["universe", "u"]:
+            # Parametreleri parse et
+            name = None
+            size = 200  # Default boyut (dokümantasyona göre)
+            force_create = False
+            session_name = None
+            
+            i = 1
+            while i < len(parts):
+                part = parts[i]
+                
+                if part in ["--name", "-n"]:
+                    if i + 1 < len(parts):
+                        name = parts[i + 1]
+                        i += 2
+                    else:
+                        self.add_console_line("HATA: --name (-n) parametresi için değer gerekli!", Colors.RED)
+                        return
+                elif part in ["--size"]:
+                    if i + 1 < len(parts):
+                        try:
+                            size = int(parts[i + 1])
+                            if size < 200 or size > 2000:
+                                self.add_console_line("HATA: Evren boyutu 200-2000 arasında olmalı!")
+                                return
+                            i += 2
+                        except ValueError:
+                            self.add_console_line("HATA: Geçersiz boyut değeri!")
+                            return
+                    else:
+                        self.add_console_line("HATA: --size parametresi için değer gerekli!", Colors.RED)
+                        return
+                elif part in ["--session", "-s"]:
+                    if i + 1 < len(parts):
+                        session_name = parts[i + 1]
+                        i += 2
+                    else:
+                        self.add_console_line("HATA: --session (-s) parametresi için değer gerekli!", Colors.RED)
+                        return
+                elif part in ["--create", "-c"]:
+                    force_create = True
+                    i += 1
+                else:
+                    i += 1
+            
+            # Name parametresi zorunlu
+            if name is None:
+                self.add_console_line("HATA: --name (-n) parametresi zorunlu! Örnek: universe --name myuniverse --size 500")
+                return
+            
+            # Session adını ayarla (default: evren adı)
+            if session_name is None:
+                session_name = name
+            
+            # Session klasör yapısını oluştur
+            self.setup_session_structure(session_name)
+            
+            # Mevcut evreni kontrol et
+            universe_file = f"universes/{name}.json"
+            chunk_metadata_file = f"universes/{name}/metadata.json"
+            self.current_universe_name = name
+            self.current_session_name = session_name
+            
+            if (os.path.exists(universe_file) or os.path.exists(chunk_metadata_file)) and not force_create:
+                # Mevcut evreni yükle
+                if os.path.exists(chunk_metadata_file):
+                    # Chunk-based format
+                    self.load_universe(chunk_metadata_file)
+                else:
+                    # Eski format
+                    self.load_universe(universe_file)
+                
+                self.start_mission(1)
+                # Matrix boyutunu güncelle
+                self.matrix_size = self.calculate_matrix_size()
+                
+                self.add_console_line(f"Evren yüklendi: {name}")
+                self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
+                self.add_console_line(f"Matrix: {self.matrix_size}x{self.matrix_size}")
+                
+                # Başlangıç mesajları
+                self.add_console_line("")
+                self.add_console_line("=== UNIVERSE READY ===")
+                self.add_console_line("Movement: engine on/off, rotate <direction>, speed <value>")
+                self.add_console_line("Info: info universe/objects, scan <x:y>, tp <x:y>")
+                self.add_console_line("Map: map --save/--load/--list/--delete <name>")
+                self.add_console_line("Exit: quit or exit")
+            else:
+                # Yeni evren oluştur
+                self.universe_size = size
+                self.create_advanced_universe(name, size, size, "normal")
+                self.start_mission(1)
+                # Matrix boyutunu güncelle
+                self.matrix_size = self.calculate_matrix_size()
+                
+                self.add_console_line(f"Yeni evren oluşturuldu: {name}")
+                self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
+                self.add_console_line(f"Matrix: {self.matrix_size}x{self.matrix_size}")
+                
+                # Başlangıç mesajları
+                self.add_console_line("")
+                self.add_console_line("=== UNIVERSE READY ===")
+                self.add_console_line("Movement: engine on/off, rotate <direction>, speed <value>")
+                self.add_console_line("Info: info universe/objects, scan <x:y>, tp <x:y>")
+                self.add_console_line("Map: map --save/--load/--list/--delete <name>")
+                self.add_console_line("Exit: quit or exit")
+        
+        elif cmd == "lang":
+            if len(parts) < 2:
+                # List available languages
+                self.add_console_line("=== AVAILABLE LANGUAGES ===", Colors.CYAN)
+                languages = [
+                    ("en", "English"),
+                    ("tr", "Türkçe"),
+                    ("fr", "Français"),
+                    ("de", "Deutsch"),
+                    ("es", "Español"),
+                    ("ja", "日本語")
+                ]
+                for code, name in languages:
+                    current_marker = " (current)" if code == self.locale.current_language else ""
+                    self.add_console_line(f"  {code} - {name}{current_marker}", Colors.WHITE)
+                self.add_console_line("", Colors.WHITE)
+                self.add_console_line("Usage: lang <language_code>", Colors.CYAN)
+                self.add_console_line("Example: lang tr", Colors.CYAN)
+                return
+            
+            language = parts[1].lower()
+            supported_languages = ["en", "tr", "fr", "de", "es", "ja"]
+            
+            if language not in supported_languages:
+                self.add_console_line(self.locale.get("language.invalid"), Colors.RED)
+                return
+            
+            self.locale.set_language(language)
+            self.add_console_line(self.locale.get("language.changed", language=language.upper()), Colors.GREEN)
+        
+        elif cmd == "cat":
+            if not self.ship:
+                self.add_console_line("ERROR: Load a universe first!", Colors.RED)
+                return
+            
+            if len(parts) < 2:
+                self.add_console_line("ERROR: Usage: cat --save <name> or cat --list", Colors.RED)
+                return
+            
+            if parts[1] == "--save":
+                if len(parts) < 3:
+                    self.add_console_line("ERROR: Celestial object name required! Usage: cat --save <name>", Colors.RED)
+                    return
+                
+                celestial_name = parts[2]
+                self.save_celestial_to_catalog(celestial_name)
+                
+            elif parts[1] == "--list":
+                self.list_catalog()
+                
+            else:
+                self.add_console_line("ERROR: Invalid cat command! Use --save or --list", Colors.RED)
+        
+        elif cmd == "map":
+            if not self.mission_started:
+                self.add_console_line("HATA: Önce bir evren yükleyin (go komutu)", Colors.RED)
+                return
+            
+            if len(parts) < 2:
+                self.add_console_line("HATA: Map komutu için parametre gerekli!", Colors.RED)
+                self.add_console_line("Kullanım: map --save <isim> --desc <açıklama>")
+                self.add_console_line("         map --delete <isim> veya map -d <isim>")
+                self.add_console_line("         map --list veya map -ls")
+                self.add_console_line("         map --load <isim> veya map -l <isim>")
+                return
+            
+            sub_cmd = parts[1].lower()
+            
+            if sub_cmd == "--save":
+                if len(parts) < 3:
+                    self.add_console_line("HATA: Map ismi gerekli! Kullanım: map --save <isim> --desc <açıklama>", Colors.RED)
+                    return
+                
+                map_name = parts[2]
+                description = ""
+                
+                # Description parametresini ara
+                if "--desc" in parts:
+                    desc_index = parts.index("--desc")
+                    if desc_index + 1 < len(parts):
+                        description = " ".join(parts[desc_index + 1:])
+                
+                self.save_map(map_name, description)
+                
+            elif sub_cmd in ["--delete", "-d"]:
+                if len(parts) < 3:
+                    self.add_console_line("HATA: Map ismi gerekli! Kullanım: map --delete <isim> veya map -d <isim>", Colors.RED)
+                    return
+                
+                map_name = parts[2]
+                self.delete_map(map_name)
+                
+            elif sub_cmd in ["--list", "-ls"]:
+                self.list_maps()
+                
+            elif sub_cmd in ["--load", "-l"]:
+                if len(parts) < 3:
+                    self.add_console_line("HATA: Map ismi gerekli! Kullanım: map --load <isim> veya map -l <isim>", Colors.RED)
+                    return
+                
+                map_name = parts[2]
+                self.load_map(map_name)
+                
+            else:
+                self.add_console_line("HATA: Geçersiz map komutu!", Colors.RED)
+                self.add_console_line("Kullanım: map --save/--delete/--list/--load <parametreler>")
+        
         elif cmd == "help":
             self.show_help()
             self.add_console_line("Yardım menüsü gösteriliyor...")
@@ -1308,16 +1870,863 @@ class SpaceGamePygame:
         else:
             self.add_console_line(f"Bilinmeyen komut: {cmd}")
     
+    def show_universe_info(self):
+        """Evren bilgilerini göster"""
+        if not self.mission_started:
+            self.add_console_line("HATA: Önce bir evren yükleyin (go komutu)", Colors.RED)
+            return
+        
+        self.add_console_line("=== EVREN BİLGİLERİ ===")
+        self.add_console_line(f"Evren Adı: {self.current_universe_name}")
+        self.add_console_line(f"Evren Boyutu: {self.universe_size}x{self.universe_size}")
+        
+        # Evren dosyasını kontrol et - chunk-based mi yoksa eski format mı?
+        universe_file = f"universes/{self.current_universe_name}.json"
+        metadata_file = f"universes/{self.current_universe_name}/metadata.json"
+        
+        total_objects = 0
+        object_types = {}
+        
+        if os.path.exists(metadata_file):
+            # Chunk-based format
+            self.add_console_line("Format: Chunk-based")
+            # Tüm chunk'ları yükle ve gök cisimlerini say
+            for chunk_x in range(0, (self.universe_size // 100) + 1):
+                for chunk_y in range(0, (self.universe_size // 100) + 1):
+                    chunk_objects = self.chunk_manager.load_chunk(chunk_x, chunk_y, self.current_universe_name)
+                    
+                    for obj in chunk_objects:
+                        total_objects += 1
+                        obj_type = obj.get('type', 'unknown')
+                        if obj_type in object_types:
+                            object_types[obj_type] += 1
+                        else:
+                            object_types[obj_type] = 1
+        elif os.path.exists(universe_file):
+            # Eski format (tek dosya)
+            self.add_console_line("Format: Eski format (tek dosya)")
+            try:
+                with open(universe_file, 'r', encoding='utf-8') as f:
+                    universe_data = json.load(f)
+                
+                if 'objects' in universe_data:
+                    for obj in universe_data['objects']:
+                        total_objects += 1
+                        obj_type = obj.get('type', 'unknown')
+                        if obj_type in object_types:
+                            object_types[obj_type] += 1
+                        else:
+                            object_types[obj_type] = 1
+            except Exception as e:
+                self.add_console_line(f"HATA: Evren dosyası okunamadı: {e}", Colors.RED)
+                return
+        else:
+            self.add_console_line("HATA: Evren dosyası bulunamadı", Colors.RED)
+            return
+        
+        self.add_console_line(f"Toplam Gök Cismi: {total_objects}")
+        self.add_console_line("")
+        self.add_console_line("Gök Cismi Tipleri:")
+        
+        # Tipleri alfabetik sıraya göre listele
+        for obj_type in sorted(object_types.keys()):
+            count = object_types[obj_type]
+            percentage = (count / total_objects * 100) if total_objects > 0 else 0
+            self.add_console_line(f"  {obj_type}: {count} adet (%{percentage:.1f})")
+        
+        self.add_console_line("")
+        self.add_console_line("=== EVREN BİLGİLERİ SONU ===")
+    
+    def show_matrix_objects_info(self):
+        """Matrix içerisindeki gök cisimleri hakkında detaylı bilgileri göster"""
+        if not self.mission_started:
+            self.add_console_line("HATA: Önce bir evren yükleyin (go komutu)", Colors.RED)
+            return
+        
+        if not self.ship:
+            self.add_console_line("HATA: Gemi bulunamadı!", Colors.RED)
+            return
+        
+        self.add_console_line("=== MATRİS GÖK CİSİMLERİ BİLGİLERİ ===")
+        self.add_console_line(f"Gemi Konumu: ({self.ship.x}, {self.ship.y})")
+        self.add_console_line(f"Matris Alanı: ({self.matrix_start_x}, {self.matrix_start_y}) - ({self.matrix_start_x + self.matrix_size - 1}, {self.matrix_start_y + self.matrix_size - 1})")
+        self.add_console_line(f"Matris Boyutu: {self.matrix_size}x{self.matrix_size}")
+        
+        # Matrix alanındaki gök cisimlerini yükle
+        matrix_objects = self.chunk_manager.get_objects_in_area(
+            self.matrix_start_x, self.matrix_start_y,
+            self.matrix_start_x + self.matrix_size - 1,
+            self.matrix_start_y + self.matrix_size - 1,
+            self.current_universe_name
+        )
+        
+        if not matrix_objects:
+            self.add_console_line("")
+            self.add_console_line("Matris alanında gök cismi bulunamadı.", Colors.YELLOW)
+            self.add_console_line("")
+            self.add_console_line("=== MATRİS GÖK CİSİMLERİ BİLGİLERİ SONU ===")
+            return
+        
+        # Gök cisimlerini mesafeye göre sırala
+        objects_with_distance = []
+        for obj in matrix_objects:
+            distance = ((obj['x'] - self.ship.x) ** 2 + (obj['y'] - self.ship.y) ** 2) ** 0.5
+            objects_with_distance.append((obj, distance))
+        
+        # Mesafeye göre sırala (en yakından en uzağa)
+        objects_with_distance.sort(key=lambda x: x[1])
+        
+        self.add_console_line("")
+        self.add_console_line(f"Toplam Gök Cismi: {len(matrix_objects)}")
+        self.add_console_line("")
+        
+        # Gök cisimlerini detaylı olarak listele
+        self.add_console_line("GÖK CİSİMLERİ (Mesafeye Göre Sıralı):", Colors.CYAN)
+        self.add_console_line("")
+        
+        for i, (obj, distance) in enumerate(objects_with_distance, 1):
+            obj_name = obj.get('name', 'Bilinmeyen')
+            obj_type = obj.get('type', 'unknown')
+            obj_x = obj['x']
+            obj_y = obj['y']
+            
+            # Gök cismi türüne göre renk ve açıklama
+            type_info = self.get_celestial_type_info(obj_type)
+            
+            self.add_console_line(f"{i:2d}. {obj_name}", Colors.WHITE)
+            self.add_console_line(f"    Tür: {type_info['name']} ({obj_type})", type_info['color'])
+            self.add_console_line(f"    Konum: ({obj_x}, {obj_y})", Colors.WHITE)
+            self.add_console_line(f"    Mesafe: {distance:.1f} nokta", Colors.YELLOW)
+            
+            # Gök cismi türüne göre özel özellikler
+            if obj_type == 'sun':
+                self.add_console_line(f"    Yıldız Türü: {obj.get('prop', 'Bilinmeyen')}", Colors.YELLOW)
+                self.add_console_line(f"    Yarıçap: {obj.get('radius', 'Bilinmeyen')} birim", Colors.YELLOW)
+                self.add_console_line(f"    Sıcaklık: {self.get_star_temperature(obj.get('prop', 'M'))} K", Colors.RED)
+                self.add_console_line(f"    Parlaklık: {self.get_star_luminosity(obj.get('prop', 'M'))} L☉", Colors.YELLOW)
+                
+            elif obj_type == 'black_hole':
+                self.add_console_line(f"    Karadelik Sınıfı: {obj.get('prop', 'Bilinmeyen')}", Colors.MAGENTA)
+                self.add_console_line(f"    Etki Yarıçapı: {obj.get('R_infl', 'Bilinmeyen')} birim", Colors.MAGENTA)
+                self.add_console_line(f"    Dışlama Yarıçapı: {obj.get('R_excl', 'Bilinmeyen')} birim", Colors.MAGENTA)
+                self.add_console_line(f"    Kütle: {self.get_black_hole_mass(obj.get('prop', 'stellar'))} M☉", Colors.MAGENTA)
+                
+            elif obj_type == 'planet':
+                self.add_console_line(f"    Gezegen Türü: {obj.get('prop', 'Bilinmeyen')}", Colors.GREEN)
+                self.add_console_line(f"    Yarıçap: {obj.get('radius', 'Bilinmeyen')} birim", Colors.GREEN)
+                self.add_console_line(f"    Yörünge Yarıçapı: {obj.get('orbit_radius', 'Bilinmeyen'):.1f} birim", Colors.GREEN)
+                self.add_console_line(f"    Ana Yıldız ID: {obj.get('star_id', 'Bilinmeyen')}", Colors.GREEN)
+                
+                # Kaynak bilgileri
+                resources = obj.get('resources', {})
+                if resources:
+                    self.add_console_line(f"    Kaynaklar:", Colors.CYAN)
+                    for resource_type, resource_data in resources.items():
+                        if isinstance(resource_data, dict):
+                            richness = resource_data.get('richness', 'unknown')
+                            score = resource_data.get('score', 0)
+                            self.add_console_line(f"      {resource_type}: {richness} (skor: {score:.2f})", Colors.CYAN)
+                
+            elif obj_type == 'asteroid_belt':
+                self.add_console_line(f"    Merkez Yarıçapı: {obj.get('center_radius', 'Bilinmeyen'):.1f} birim", Colors.ORANGE)
+                self.add_console_line(f"    Genişlik: {obj.get('width', 'Bilinmeyen'):.1f} birim", Colors.ORANGE)
+                self.add_console_line(f"    Fragment Sayısı: {obj.get('fragment_count', 'Bilinmeyen')}", Colors.ORANGE)
+                self.add_console_line(f"    Ana Yıldız ID: {obj.get('star_id', 'Bilinmeyen')}", Colors.ORANGE)
+                
+                # Kaynak havuzu bilgileri
+                resource_pool = obj.get('resource_pool', {})
+                if resource_pool:
+                    self.add_console_line(f"    Kaynak Havuzu:", Colors.CYAN)
+                    for resource_type, resource_data in resource_pool.items():
+                        if isinstance(resource_data, dict):
+                            richness = resource_data.get('richness', 'unknown')
+                            score = resource_data.get('score', 0)
+                            self.add_console_line(f"      {resource_type}: {richness} (skor: {score:.2f})", Colors.CYAN)
+            
+            self.add_console_line(f"    Açıklama: {type_info['description']}", Colors.LIGHT_GRAY)
+            self.add_console_line("")
+        
+        # Özet istatistikler
+        self.add_console_line("ÖZET İSTATİSTİKLER:", Colors.CYAN)
+        
+        # Tür bazlı sayım
+        type_counts = {}
+        for obj in matrix_objects:
+            obj_type = obj.get('type', 'unknown')
+            type_counts[obj_type] = type_counts.get(obj_type, 0) + 1
+        
+        for obj_type, count in sorted(type_counts.items()):
+            type_info = self.get_celestial_type_info(obj_type)
+            percentage = (count / len(matrix_objects) * 100)
+            self.add_console_line(f"  {type_info['name']}: {count} adet (%{percentage:.1f})", type_info['color'])
+        
+        # Mesafe istatistikleri
+        if objects_with_distance:
+            min_distance = min(distance for _, distance in objects_with_distance)
+            max_distance = max(distance for _, distance in objects_with_distance)
+            avg_distance = sum(distance for _, distance in objects_with_distance) / len(objects_with_distance)
+            
+            self.add_console_line("")
+            self.add_console_line("MESAFE İSTATİSTİKLERİ:", Colors.CYAN)
+            self.add_console_line(f"  En yakın: {min_distance:.1f} nokta", Colors.GREEN)
+            self.add_console_line(f"  En uzak: {max_distance:.1f} nokta", Colors.RED)
+            self.add_console_line(f"  Ortalama: {avg_distance:.1f} nokta", Colors.YELLOW)
+        
+        self.add_console_line("")
+        self.add_console_line("=== MATRİS GÖK CİSİMLERİ BİLGİLERİ SONU ===")
+    
+    def calculate_star_count(self, width: int, height: int, preset_scale: float = 1.0) -> int:
+        """Yıldız sayısını hesapla"""
+        area = width * height
+        S = UniverseConstants.BASE_STAR_DENOMINATOR * preset_scale
+        n_stars = max(UniverseConstants.MIN_STAR_COUNT, round(area / S))
+        return min(n_stars, UniverseConstants.MAX_STAR_COUNT)
+    
+    def calculate_minimum_star_spacing(self, width: int, height: int, n_stars: int) -> float:
+        """Minimum yıldız-yıldız mesafesini hesapla"""
+        area = width * height
+        D = math.sqrt(area / n_stars)
+        return UniverseConstants.MIN_STAR_SPACING_FACTOR * D
+    
+    def place_black_holes(self, width: int, height: int, area: int, max_attempts: int = 5000) -> list:
+        """Karadelikleri yerleştir"""
+        n_bh = max(0, round(area / UniverseConstants.BH_DENOMINATOR))
+        black_holes = []
+        
+        for i in range(n_bh):
+            placed = False
+            for attempt in range(max_attempts):
+                x = random.uniform(0, width)
+                y = random.uniform(0, height)
+                
+                # Karadelik sınıfını seç
+                bh_class = random.choices(
+                    [BlackHoleClass.STELLAR, BlackHoleClass.INTERMEDIATE, BlackHoleClass.SUPERMASSIVE],
+                    weights=[85, 14, 1]
+                )[0]
+                
+                bh = BlackHole(x, y, bh_class, len(black_holes))
+                
+                # Mevcut karadeliklerle çakışma kontrolü
+                collision = False
+                for existing_bh in black_holes:
+                    distance = math.hypot(x - existing_bh.x, y - existing_bh.y)
+                    if distance < (bh.R_excl + existing_bh.R_excl):
+                        collision = True
+                        break
+                
+                if not collision:
+                    black_holes.append(bh)
+                    placed = True
+                    break
+            
+            if not placed:
+                # Karadelik yerleştirilemedi, devam et
+                continue
+        
+        return black_holes
+    
+    def place_stars(self, width: int, height: int, n_stars: int, D_min: float, 
+                   black_holes: list, max_attempts_per_star: int = 2000) -> list:
+        """Yıldızları yerleştir"""
+        stars = []
+        
+        for i in range(n_stars):
+            placed = False
+            for attempt in range(max_attempts_per_star):
+                x = random.uniform(0, width)
+                y = random.uniform(0, height)
+                
+                # Karadelik dışlama alanı kontrolü
+                collision = False
+                for bh in black_holes:
+                    distance = math.hypot(x - bh.x, y - bh.y)
+                    if distance < bh.R_excl:
+                        collision = True
+                        break
+                
+                if collision:
+                    continue
+                
+                # Yıldız-yıldız mesafe kontrolü
+                for star in stars:
+                    distance = math.hypot(x - star.x, y - star.y)
+                    if distance < D_min:
+                        collision = True
+                        break
+                
+                if collision:
+                    continue
+                
+                # Yıldız türünü seç
+                star_type = random.choices(
+                    [StarType.M, StarType.K, StarType.G, StarType.HOT],
+                    weights=[70, 15, 8, 7]
+                )[0]
+                
+                # Yıldız yarıçapı
+                star_radius = {"M": 5, "K": 7, "G": 9, "Hot": 12}[star_type.value]
+                
+                star = Star(x, y, star_type, star_radius, len(stars))
+                stars.append(star)
+                placed = True
+                break
+            
+            if not placed:
+                # Yıldız yerleştirilemedi, devam et
+                continue
+        
+        return stars
+    
+    def place_planets_for_star(self, star: Star, width: int, height: int, 
+                              existing_objects: list, mean_planets: float = 3.5) -> list:
+        """Yıldız için gezegenleri yerleştir"""
+        planets = []
+        
+        # Poisson dağılımı ile gezegen sayısı
+        n_planets = max(0, int(random.gauss(mean_planets, 1)))
+        n_planets = min(n_planets, 20)  # Maksimum sınır
+        
+        if n_planets == 0:
+            return planets
+        
+        # İlk yörünge yarıçapı
+        a = max(star.radius * 1.5, 8)
+        
+        for i in range(n_planets):
+            # Yörünge yarıçapını artır
+            r_ratio = random.uniform(*UniverseConstants.PLANET_ORBIT_RATIO_RANGE)
+            a = a * r_ratio
+            
+            # Yörünge açısı
+            theta = random.uniform(0, 2 * math.pi)
+            
+            # Gezegen konumu
+            px = star.x + a * math.cos(theta)
+            py = star.y + a * math.sin(theta)
+            
+            # Sınır kontrolü
+            if px < 0 or px >= width or py < 0 or py >= height:
+                continue
+            
+            # Gezegen yarıçapı tahmini
+            planet_radius = max(1, int(a ** 0.3))
+            
+            # Çakışma kontrolü
+            collision = False
+            for obj in existing_objects:
+                distance = math.hypot(px - obj.x, py - obj.y)
+                obj_radius = getattr(obj, 'radius', 0)
+                if distance < (planet_radius + obj_radius) * 1.2:
+                    collision = True
+                    break
+            
+            if collision:
+                continue
+            
+            # Gezegen türünü belirle (mesafeye göre)
+            if a < 50:
+                planet_type = PlanetType.ROCKY
+            elif a > 200:
+                planet_type = PlanetType.GAS
+            else:
+                planet_type = PlanetType.ICE
+            
+            planet = Planet(px, py, a, theta, planet_type, planet_radius, 
+                          star.star_id, len(planets))
+            planets.append(planet)
+        
+        return planets
+    
+    def create_asteroid_belt(self, star: Star, planets: list, belt_id: int) -> AsteroidBelt:
+        """Asteroid kuşağı oluştur"""
+        # Kuşak merkez yarıçapı (gezegen yörüngeleri arasında)
+        if len(planets) >= 2:
+            # İkinci ve üçüncü gezegen arası
+            orbit_radii = [p.orbit_radius for p in planets]
+            orbit_radii.sort()
+            if len(orbit_radii) >= 2:
+                a_belt = random.uniform(orbit_radii[1], orbit_radii[2] if len(orbit_radii) > 2 else orbit_radii[1] * 1.5)
+            else:
+                a_belt = orbit_radii[0] * random.uniform(1.2, 2.5)
+        else:
+            # Gezegen yoksa varsayılan mesafe
+            a_belt = star.radius * random.uniform(3, 8)
+        
+        # Kuşak genişliği
+        width = random.uniform(10, 100)
+        
+        return AsteroidBelt(star.star_id, a_belt, width, belt_id)
+    
+    def assign_resources(self, body, body_type: str) -> dict:
+        """Gök cismine kaynak ataması yap - Rastgele kaynak seçimi"""
+        resources = {}
+        
+        # Kütle faktörü - radius özelliği varsa kullan, yoksa varsayılan değer
+        if hasattr(body, 'radius'):
+            mass_factor = max(0.5, body.radius / 5.0)
+        else:
+            mass_factor = 1.0  # Varsayılan kütle faktörü
+        
+        # Mesafe faktörü
+        distance_factor = 1.0
+        if body_type == "asteroid":
+            distance_factor = 1.5
+        elif hasattr(body, 'prop') and body.prop == "gas":
+            distance_factor = 0.2
+        
+        # Rastgele kaynak sayısı (3-8 arası)
+        num_resources = random.randint(3, 8)
+        
+        # Mevcut kaynak türlerini rastgele seç
+        available_resources = list(UniverseConstants.BASE_RESOURCE_ABUNDANCE.keys())
+        selected_resources = random.sample(available_resources, min(num_resources, len(available_resources)))
+        
+        # Seçilen kaynaklar için hesaplama
+        for resource_type in selected_resources:
+            base_val = UniverseConstants.BASE_RESOURCE_ABUNDANCE[resource_type][body_type]
+            score = base_val * mass_factor * distance_factor * random.uniform(0.7, 1.3)
+            
+            # Zenginlik sınıflandırması
+            if score > UniverseConstants.RESOURCE_THRESHOLD_HIGH:
+                richness = ResourceRichness.RICH
+            elif score > UniverseConstants.RESOURCE_THRESHOLD_LOW:
+                richness = ResourceRichness.NORMAL
+            else:
+                richness = ResourceRichness.POOR
+            
+            resources[resource_type.value] = {
+                "score": score,
+                "richness": richness.value
+            }
+        
+        return resources
+    
+    def get_star_temperature(self, star_type: str) -> str:
+        """Yıldız türüne göre sıcaklık döndür"""
+        temperatures = {
+            'M': '3,000-3,500',
+            'K': '3,500-5,000',
+            'G': '5,000-6,000',
+            'Hot': '6,000-50,000'
+        }
+        return temperatures.get(star_type, 'Bilinmeyen')
+    
+    def get_star_luminosity(self, star_type: str) -> str:
+        """Yıldız türüne göre parlaklık döndür"""
+        luminosities = {
+            'M': '0.01-0.1',
+            'K': '0.1-0.6',
+            'G': '0.6-1.5',
+            'Hot': '1.5-100,000'
+        }
+        return luminosities.get(star_type, 'Bilinmeyen')
+    
+    def get_black_hole_mass(self, bh_class: str) -> str:
+        """Karadelik sınıfına göre kütle döndür"""
+        masses = {
+            'stellar': '3-20',
+            'intermediate': '100-10,000',
+            'super': '1,000,000-10,000,000'
+        }
+        return masses.get(bh_class, 'Bilinmeyen')
+    
+    def create_advanced_universe(self, name: str, width: int, height: int, preset: str = "normal") -> dict:
+        """Gelişmiş evren oluşturma algoritması"""
+        self.add_console_line(f"Evren oluşturuluyor: {name} ({width}x{height})")
+        self.add_console_line(f"Preset: {preset}")
+        
+        # Preset ölçekleri
+        preset_scales = {
+            "sparse": 2.5,
+            "normal": 1.0,
+            "dense": 0.5,
+            "empty": 10.0
+        }
+        preset_scale = preset_scales.get(preset, 1.0)
+        
+        area = width * height
+        
+        # 1. Yıldız sayısını hesapla
+        n_stars = self.calculate_star_count(width, height, preset_scale)
+        D_min = self.calculate_minimum_star_spacing(width, height, n_stars)
+        
+        self.add_console_line(f"Yıldız sayısı: {n_stars}")
+        self.add_console_line(f"Minimum yıldız mesafesi: {D_min:.1f}")
+        
+        # 2. Karadelikleri yerleştir (önce)
+        self.add_console_line("Karadelikler yerleştiriliyor...")
+        black_holes = self.place_black_holes(width, height, area)
+        self.add_console_line(f"Yerleştirilen karadelik sayısı: {len(black_holes)}")
+        
+        # 3. Yıldızları yerleştir
+        self.add_console_line("Yıldızlar yerleştiriliyor...")
+        stars = self.place_stars(width, height, n_stars, D_min, black_holes)
+        self.add_console_line(f"Yerleştirilen yıldız sayısı: {len(stars)}")
+        
+        # 4. Her yıldıza gezegenler ekle
+        all_planets = []
+        all_asteroid_belts = []
+        existing_objects = black_holes + stars
+        
+        self.add_console_line("Gezegenler yerleştiriliyor...")
+        for star in stars:
+            planets = self.place_planets_for_star(star, width, height, existing_objects)
+            star.planets = planets
+            all_planets.extend(planets)
+            
+            # Kaynak ataması
+            for planet in planets:
+                planet.resources = self.assign_resources(planet, "planet")
+            
+            # Asteroid kuşağı oluştur
+            if random.random() < UniverseConstants.ASTEROID_BELT_PROB:
+                belt = self.create_asteroid_belt(star, planets, len(all_asteroid_belts))
+                belt.resource_pool = self.assign_resources(belt, "asteroid")
+                star.asteroid_belts.append(belt)
+                all_asteroid_belts.append(belt)
+            
+            # Mevcut objeleri güncelle
+            existing_objects.extend(planets)
+        
+        self.add_console_line(f"Yerleştirilen gezegen sayısı: {len(all_planets)}")
+        self.add_console_line(f"Yerleştirilen asteroid kuşağı sayısı: {len(all_asteroid_belts)}")
+        
+        # 5. Chunk'lara dağıt
+        self.add_console_line("Chunk'lara dağıtılıyor...")
+        chunk_objects = {}
+        
+        # Yıldızları chunk'lara dağıt
+        for star in stars:
+            chunk_coord = self.chunk_manager.get_chunk_coords(int(star.x), int(star.y))
+            if chunk_coord not in chunk_objects:
+                chunk_objects[chunk_coord] = []
+            
+            chunk_objects[chunk_coord].append({
+                "x": int(star.x),
+                "y": int(star.y),
+                "type": "sun",
+                "name": f"star_{int(star.x)}_{int(star.y)}",
+                "prop": star.star_type.value,
+                "radius": star.radius
+            })
+        
+        # Karadelikleri chunk'lara dağıt
+        for bh in black_holes:
+            chunk_coord = self.chunk_manager.get_chunk_coords(int(bh.x), int(bh.y))
+            if chunk_coord not in chunk_objects:
+                chunk_objects[chunk_coord] = []
+            
+            chunk_objects[chunk_coord].append({
+                "x": int(bh.x),
+                "y": int(bh.y),
+                "type": "black_hole",
+                "name": f"blackhole_{int(bh.x)}_{int(bh.y)}",
+                "prop": bh.bh_class.value,
+                "R_infl": bh.R_infl,
+                "R_excl": bh.R_excl
+            })
+        
+        # Gezegenleri chunk'lara dağıt
+        for planet in all_planets:
+            chunk_coord = self.chunk_manager.get_chunk_coords(int(planet.x), int(planet.y))
+            if chunk_coord not in chunk_objects:
+                chunk_objects[chunk_coord] = []
+            
+            chunk_objects[chunk_coord].append({
+                "x": int(planet.x),
+                "y": int(planet.y),
+                "type": "planet",
+                "name": f"planet_{int(planet.x)}_{int(planet.y)}",
+                "prop": planet.planet_type.value,
+                "radius": planet.radius,
+                "orbit_radius": planet.orbit_radius,
+                "star_id": planet.star_id,
+                "resources": planet.resources
+            })
+        
+        # Asteroid kuşaklarını chunk'lara dağıt
+        for belt in all_asteroid_belts:
+            # Kuşak merkezini bul
+            star = next((s for s in stars if s.star_id == belt.star_id), None)
+            if star:
+                chunk_coord = self.chunk_manager.get_chunk_coords(int(star.x), int(star.y))
+                if chunk_coord not in chunk_objects:
+                    chunk_objects[chunk_coord] = []
+                
+                chunk_objects[chunk_coord].append({
+                    "x": int(star.x),
+                    "y": int(star.y),
+                    "type": "asteroid_belt",
+                    "name": f"belt_{int(star.x)}_{int(star.y)}_{belt.belt_id}",
+                    "center_radius": belt.center_radius,
+                    "width": belt.width,
+                    "fragment_count": belt.fragment_count,
+                    "star_id": belt.star_id,
+                    "resource_pool": belt.resource_pool
+                })
+        
+        # 6. Chunk dosyalarını oluştur
+        universe_dir = f"universes/{name}"
+        os.makedirs(universe_dir, exist_ok=True)
+        
+        # Metadata dosyası
+        metadata = {
+            "name": name,
+            "size": width,
+            "chunk_size": 100,
+            "created": datetime.now().isoformat(),
+            "preset": preset,
+            "statistics": {
+                "stars": len(stars),
+                "black_holes": len(black_holes),
+                "planets": len(all_planets),
+                "asteroid_belts": len(all_asteroid_belts)
+            }
+        }
+        
+        with open(f"{universe_dir}/metadata.json", 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+        
+        # Chunk dosyalarını oluştur
+        for chunk_coord, objects in chunk_objects.items():
+            chunk_file = self.chunk_manager.get_chunk_file_path(
+                chunk_coord[0], chunk_coord[1], name
+            )
+            with open(chunk_file, 'w', encoding='utf-8') as f:
+                json.dump(objects, f, indent=2, ensure_ascii=False)
+        
+        self.add_console_line(f"Evren oluşturuldu: {name}")
+        self.add_console_line(f"Toplam chunk sayısı: {len(chunk_objects)}")
+        
+        return {
+            "stars": stars,
+            "black_holes": black_holes,
+            "planets": all_planets,
+            "asteroid_belts": all_asteroid_belts,
+            "chunk_objects": chunk_objects
+        }
+    
+    def get_celestial_type_info(self, obj_type):
+        """Gök cismi türüne göre bilgi döndür"""
+        type_info = {
+            'sun': {
+                'name': 'Güneş',
+                'color': Colors.YELLOW,
+                'description': 'Yıldız - Güçlü enerji kaynağı, yaklaşmayın!'
+            },
+            'black_hole': {
+                'name': 'Kara Delik',
+                'color': Colors.MAGENTA,
+                'description': 'Tehlikeli - Çok güçlü çekim kuvveti, uzak durun!'
+            },
+            'asteroid_belt': {
+                'name': 'Asteroid Kuşağı',
+                'color': Colors.GRAY,
+                'description': 'Orta tehlikeli - Küçük kayalar, dikkatli geçin!'
+            },
+            'planet': {
+                'name': 'Gezegen',
+                'color': Colors.BLUE,
+                'description': 'Güvenli - Keşfedilebilir, iniş yapılabilir!'
+            },
+            'comet': {
+                'name': 'Kuyruklu Yıldız',
+                'color': Colors.CYAN,
+                'description': 'Hareketli - Hızlı hareket eder, takip edilebilir!'
+            }
+        }
+        
+        return type_info.get(obj_type, {
+            'name': 'Bilinmeyen',
+            'color': Colors.WHITE,
+            'description': 'Tanımlanmamış gök cismi türü'
+        })
+    
+    def save_map(self, map_name, description=""):
+        """Mevcut chunk'ı map olarak kaydet"""
+        if not self.ship:
+            self.add_console_line("HATA: Gemi bulunamadı!", Colors.RED)
+            return
+        
+        # Session kontrolü
+        if not hasattr(self, 'current_session_name') or not self.current_session_name:
+            self.add_console_line("ERROR: No active session!", Colors.RED)
+            return
+        
+        # Session maps klasörünü oluştur
+        maps_dir = f"sessions/{self.current_session_name}/maps"
+        os.makedirs(maps_dir, exist_ok=True)
+        
+        # Map dosya yolu
+        map_file = f"{maps_dir}/{map_name}.json"
+        
+        # Aynı isimde map var mı kontrol et
+        if os.path.exists(map_file):
+            self.add_console_line(f"HATA: '{map_name}' isimli map zaten mevcut!", Colors.RED)
+            return
+        
+        # Mevcut matrix alanındaki gök cisimlerini yükle
+        matrix_objects = self.chunk_manager.get_objects_in_area(
+            self.matrix_start_x, self.matrix_start_y,
+            self.matrix_start_x + self.matrix_size - 1,
+            self.matrix_start_y + self.matrix_size - 1,
+            self.current_universe_name
+        )
+        
+        # Map verisini oluştur
+        map_data = {
+            "name": map_name,
+            "description": description,
+            "universe_name": self.current_universe_name,
+            "created": datetime.now().isoformat(),
+            "matrix_data": {
+                "center_x": self.ship.x,
+                "center_y": self.ship.y,
+                "matrix_start_x": self.matrix_start_x,
+                "matrix_start_y": self.matrix_start_y,
+                "matrix_size": self.matrix_size,
+                "celestial_objects": matrix_objects
+            }
+        }
+        
+        # Map dosyasını kaydet
+        try:
+            with open(map_file, 'w', encoding='utf-8') as f:
+                json.dump(map_data, f, indent=2, ensure_ascii=False)
+            
+            self.add_console_line(f"Map kaydedildi: {map_name}")
+            self.add_console_line(f"Konum: {maps_dir}/{map_name}.json")
+            self.add_console_line(f"Açıklama: {description if description else 'Açıklama yok'}")
+            self.add_console_line(f"Gök cismi sayısı: {len(matrix_objects)}")
+            
+        except Exception as e:
+            self.add_console_line(f"HATA: Map kaydedilemedi: {e}", Colors.RED)
+    
+    def delete_map(self, map_name):
+        """Map dosyasını sil"""
+        if not hasattr(self, 'current_session_name') or not self.current_session_name:
+            self.add_console_line("ERROR: No active session!", Colors.RED)
+            return
+        
+        maps_dir = f"sessions/{self.current_session_name}/maps"
+        map_file = f"{maps_dir}/{map_name}.json"
+        
+        if not os.path.exists(map_file):
+            self.add_console_line(f"HATA: '{map_name}' isimli map bulunamadı!", Colors.RED)
+            return
+        
+        try:
+            os.remove(map_file)
+            self.add_console_line(f"Map silindi: {map_name}")
+        except Exception as e:
+            self.add_console_line(f"HATA: Map silinemedi: {e}", Colors.RED)
+    
+    def list_maps(self):
+        """Kayıtlı map'leri listele"""
+        if not hasattr(self, 'current_session_name') or not self.current_session_name:
+            self.add_console_line("ERROR: No active session!", Colors.RED)
+            return
+        
+        maps_dir = f"sessions/{self.current_session_name}/maps"
+        
+        if not os.path.exists(maps_dir):
+            self.add_console_line("Kayıtlı map bulunamadı.")
+            return
+        
+        map_files = [f for f in os.listdir(maps_dir) if f.endswith('.json')]
+        
+        if not map_files:
+            self.add_console_line("Kayıtlı map bulunamadı.")
+            return
+        
+        self.add_console_line("=== KAYITLI MAP'LER ===")
+        
+        for i, map_file in enumerate(sorted(map_files), 1):
+            map_name = map_file.replace('.json', '')
+            map_path = os.path.join(maps_dir, map_file)
+            
+            try:
+                with open(map_path, 'r', encoding='utf-8') as f:
+                    map_data = json.load(f)
+                
+                description = map_data.get('description', 'Açıklama yok')
+                created = map_data.get('created', 'Bilinmiyor')
+                obj_count = len(map_data.get('matrix_data', {}).get('celestial_objects', []))
+                
+                self.add_console_line(f"{i:2d}. {map_name}")
+                self.add_console_line(f"    Açıklama: {description}")
+                self.add_console_line(f"    Oluşturulma: {created}")
+                self.add_console_line(f"    Gök cismi sayısı: {obj_count}")
+                self.add_console_line("")
+                
+            except Exception as e:
+                self.add_console_line(f"{i:2d}. {map_name} (HATA: {e})")
+        
+        self.add_console_line("=== MAP LİSTESİ SONU ===")
+    
+    def load_map(self, map_name):
+        """Map'i matrix olarak yükle"""
+        if not hasattr(self, 'current_session_name') or not self.current_session_name:
+            self.add_console_line("ERROR: No active session!", Colors.RED)
+            return
+        
+        maps_dir = f"sessions/{self.current_session_name}/maps"
+        map_file = f"{maps_dir}/{map_name}.json"
+        
+        if not os.path.exists(map_file):
+            self.add_console_line(f"HATA: '{map_name}' isimli map bulunamadı!", Colors.RED)
+            return
+        
+        try:
+            with open(map_file, 'r', encoding='utf-8') as f:
+                map_data = json.load(f)
+            
+            matrix_data = map_data.get('matrix_data', {})
+            
+            # Matrix koordinatlarını güncelle
+            self.ship.x = matrix_data.get('center_x', self.ship.x)
+            self.ship.y = matrix_data.get('center_y', self.ship.y)
+            self.matrix_start_x = matrix_data.get('matrix_start_x', self.matrix_start_x)
+            self.matrix_start_y = matrix_data.get('matrix_start_y', self.matrix_start_y)
+            self.matrix_size = matrix_data.get('matrix_size', self.matrix_size)
+            
+            # Matrix merkezini güncelle
+            self.last_matrix_center_x = self.ship.x
+            self.last_matrix_center_y = self.ship.y
+            
+            # Chunk'ları güncelle
+            self.chunk_manager.unload_distant_chunks(self.ship.x, self.ship.y)
+            
+            # Motoru durdur (güvenlik)
+            self.ship.is_moving = False
+            self.engine_on = False
+            
+            # Başarı mesajı
+            self.add_console_line(f"Map yüklendi: {map_name}")
+            self.add_console_line(f"Gemi konumu: ({self.ship.x}, {self.ship.y})")
+            self.add_console_line(f"Matrix alanı: ({self.matrix_start_x}, {self.matrix_start_y}) - ({self.matrix_start_x + self.matrix_size - 1}, {self.matrix_start_y + self.matrix_size - 1})")
+            
+            # Matrix görüntüye bilgi ekle
+            self.add_matrix_line(f"MAP YÜKLENDİ: {map_name}", Colors.MAGENTA)
+            self.add_matrix_line(f"GEMİ KONUMU: ({self.ship.x}, {self.ship.y})", Colors.CYAN)
+            self.add_matrix_line(f"MATRİS ALANI: ({self.matrix_start_x}, {self.matrix_start_y}) - ({self.matrix_start_x + self.matrix_size - 1}, {self.matrix_start_y + self.matrix_size - 1})", Colors.CYAN)
+            
+        except Exception as e:
+            self.add_console_line(f"HATA: Map yüklenemedi: {e}", Colors.RED)
+    
     def show_help(self):
         """Yardım ekranını göster"""
         help_text = """
 === UZAY OYUNU KOMUTLARI ===
 
 BAŞLATMA:
-  go --name <isim> [--size <boyut>] [--velocity <hız>]  - Evren oluştur/yükle ve görev başlat
-  Örnek: go --name myspaces --size 21000 --velocity 2
-  Örnek: go -n altay -s 14400 -v 1
-  Not: Mevcut evren varsa yükler, yoksa yeni oluşturur
+  universe --name <isim> --size <boyut>                 - Gelişmiş evren oluştur/yükle (200-2000)
+  u -n <isim> -s <boyut>                               - Kısa komut (universe - önerilen)
+  go --name <isim> [--size <boyut>] [--velocity <hız>]  - DEPRECATED (kullanımdan kaldırıldı)
+  Örnek: universe --name myuniverse --size 500
+  Örnek: u -n myuniverse -s 1000
+  Not: Mevcut evren varsa yükler, yoksa yeni oluşturur. 'go' komutu artık çalışmaz.
 
 GEMİ KONTROLÜ:
   startEngine                             - Motoru başlat
@@ -1335,9 +2744,17 @@ TARAMA:
 EVREN YÖNETİMİ:
   list veya ls                            - Mevcut evrenleri listele
 
+MAP YÖNETİMİ:
+  map --save <isim> --desc <açıklama>     - Mevcut chunk'ı map olarak kaydet
+  map --delete <isim> veya map -d <isim>  - Map dosyasını sil
+  map --list veya map -ls                 - Kayıtlı map'leri listele
+  map --load <isim> veya map -l <isim>    - Map'i matrix olarak yükle
+
 DİĞER:
   status                                  - Detaylı durum
   time                                    - Mevcut zaman
+  info universe/objects                   - Evren/matris gök cisimleri bilgilerini göster
+  i u/o                                   - Kısa komut (info universe/objects)
   grid on/off                             - Grid çizgilerini aç/kapat
   clear/cls                               - Konsolu temizle
   help                                    - Bu yardım
@@ -1376,51 +2793,82 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
         self.add_console_line("  clear, cls - Konsolu temizle")
     
     def load_universe(self, file_path: str):
-        """Mevcut evreni yükle"""
+        """Mevcut evreni yükle - Chunk-based ve eski format destekler"""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            self.universe_size = data['size']
-            self.celestial_objects = []
-            
-            for obj_data in data['objects']:
-                obj = CelestialObject(
-                    x=obj_data['x'],
-                    y=obj_data['y'],
-                    obj_type=CelestialType(obj_data['type']),
-                    name=obj_data['name']
-                )
-                self.celestial_objects.append(obj)
-            
-            self.universe_created = True
-            self.add_matrix_line(f"Evren yüklendi: {file_path} ({self.universe_size}x{self.universe_size})")
-            self.add_matrix_line(f"Toplam {len(self.celestial_objects)} gök cismi yüklendi")
-            
+            # Chunk-based format kontrolü
+            if file_path.endswith('.json') and os.path.exists(file_path.replace('.json', '/metadata.json')):
+                # Chunk-based format
+                metadata_file = file_path.replace('.json', '/metadata.json')
+                with open(metadata_file, 'r', encoding='utf-8') as f:
+                    metadata = json.load(f)
+                
+                self.universe_size = metadata['size']
+                self.celestial_objects = []  # Chunk-based'de boş bırakıyoruz, chunk'lar gerektiğinde yüklenir
+                
+                self.universe_created = True
+                self.add_console_line(f"Chunk-based evren yüklendi: {file_path}")
+                self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
+                self.add_console_line(f"Density: {metadata.get('density', 'normal')}")
+                
+            else:
+                # Eski format (tek dosya)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                self.universe_size = data['size']
+                self.celestial_objects = []
+                
+                for obj_data in data['objects']:
+                    obj = CelestialObject(
+                        x=obj_data['x'],
+                        y=obj_data['y'],
+                        obj_type=CelestialType(obj_data['type']),
+                        name=obj_data['name']
+                    )
+                    self.celestial_objects.append(obj)
+                
+                self.universe_created = True
+                self.add_console_line(f"Eski format evren yüklendi: {file_path}")
+                self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
+                self.add_console_line(f"Toplam {len(self.celestial_objects)} gök cismi yüklendi")
+                
         except Exception as e:
-            self.add_console_line(f"HATA: Evren yüklenemedi: {str(e)}")
+            self.add_console_line(f"HATA: Evren yüklenemedi: {str(e)}", Colors.RED)
     
     def list_universes(self):
-        """Universes klasöründeki evrenleri listele"""
+        """Universes klasöründeki evrenleri listele - hem chunk-based hem eski format"""
         try:
             # universes klasörünü oluştur
             os.makedirs("universes", exist_ok=True)
             
-            # JSON dosyalarını bul
+            # Evrenleri bul - hem chunk-based hem eski format
             universe_files = []
-            for file in os.listdir("universes"):
-                if file.endswith('.json'):
-                    universe_files.append(file)
+            chunk_dirs = []
             
-            if not universe_files:
+            for item in os.listdir("universes"):
+                item_path = os.path.join("universes", item)
+                if os.path.isfile(item_path) and item.endswith('.json'):
+                    # Eski format
+                    universe_files.append(item)
+                elif os.path.isdir(item_path) and os.path.exists(os.path.join(item_path, 'metadata.json')):
+                    # Chunk-based format
+                    chunk_dirs.append(item)
+            
+            if not universe_files and not chunk_dirs:
                 self.add_console_line("Universes klasöründe evren bulunamadı")
                 return
             
             # Dosyaları listele - Sadece konsola yaz
             self.add_console_line("MEVCUT EVRENLER:", Colors.YELLOW)
+            
+            # Eski format evrenler
             for i, file in enumerate(sorted(universe_files), 1):
                 name = file.replace('.json', '')
-                self.add_console_line(f"{i}. {name}")
+                self.add_console_line(f"{i}. {name} (Eski format)")
+            
+            # Chunk-based evrenler
+            for i, file in enumerate(sorted(chunk_dirs), len(universe_files) + 1):
+                self.add_console_line(f"{i}. {file} (Chunk-based)")
             
         except Exception as e:
             self.add_console_line(f"HATA: Evren listesi alınamadı: {str(e)}")
@@ -1473,8 +2921,8 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
             
                 # Gök cismi türlerini dağıt
             obj_type = random.choices(
-                [ObjectType.SUN, ObjectType.BLACK_HOLE, ObjectType.ASTEROID, 
-                 ObjectType.PLANET, ObjectType.COMET],
+                [CelestialType.SUN, CelestialType.BLACK_HOLE, CelestialType.ASTEROID_BELT, 
+                 CelestialType.PLANET, CelestialType.COMET],
                 weights=[0.1, 0.05, 0.3, 0.4, 0.15]
             )[0]
             
@@ -1500,20 +2948,27 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
         self.add_console_line(f"Toplam {total_objects} gök cismi, {len(chunk_objects)} chunk")
     
     def start_mission(self, max_speed: int = 1):
-        """Görevi başlat"""
-        if not self.celestial_objects:
-            return
+        """Görevi başlat - Chunk-based ve eski format destekler"""
+        # Chunk-based evrenlerde celestial_objects boş olabilir, bu normal
+        # if not self.celestial_objects:  # Bu kontrolü kaldırdık
+        #     return
         
         # Rastgele pozisyon
         x = random.randint(0, self.universe_size - 1)
         y = random.randint(0, self.universe_size - 1)
         
         # Gemi oluştur
-        self.ship = Ship(x, y, 14400)
-        self.ship.speed = max_speed
+        self.ship = Ship(x, y, self.universe_size)
         self.ship.is_moving = False
         self.ship.mission_start_time = datetime.now()
         self.mission_started = True
+        
+        # 24 saatte tüm noktalara ulaşmak için gereken hızı hesapla ve ayarla
+        self.calculate_24h_speed()
+        if hasattr(self, 'required_24h_speed') and self.required_24h_speed > 0:
+            self.ship.speed = self.required_24h_speed
+        else:
+            self.ship.speed = max_speed
         
         # Matrix başlangıç koordinatlarını gemi pozisyonuna ayarla
         half_size = self.matrix_size // 2
@@ -1530,9 +2985,9 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
         self.last_matrix_center_y = y
         
         self.add_matrix_line(f"Görev başlatıldı! Konum: ({x}, {y})")
-        self.add_matrix_line(f"Hız: {max_speed} dk/10 matris = {self.points_per_minute} nokta/dk")
-        self.add_matrix_line(f"Güncelleme: {self.seconds_per_point:.1f} saniyede bir")
-        self.add_matrix_line(f"Matris merkezi: ({x}, {y}) - 10 nokta hareket edildiğinde yenilenecek", Colors.CYAN)
+        self.add_matrix_line(f"Hız: {self.ship.speed:.2f} sn/nokta")
+        self.add_matrix_line(f"Güncelleme: {self.ship.speed:.2f} saniyede bir")
+        self.add_matrix_line(f"Matris merkezi: ({x}, {y}) - Her nokta değişikliğinde yenilenecek", Colors.CYAN)
     
     def start_engine(self):
         """Motoru başlat"""
@@ -1610,12 +3065,14 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
     
     def run(self):
         """Ana oyun döngüsü"""
-        # Başlangıç mesajları - Linux konsoluna
-        self.add_console_line("Orbit - Space Game başlatıldı!")
-        self.add_console_line("Başlatma: go --name <isim> [--size <boyut>] [--velocity <hız>]")
-        self.add_console_line("Örnek: go --name myspaces --size 21000 --velocity 2")
-        self.add_console_line("Hareket: engine on/off, rotate <direction>, speed <value>")
-        self.add_console_line("Çıkış: quit veya exit")
+        # Startup messages - Linux console
+        self.add_console_line(self.locale.get("game_started"))
+        self.add_console_line(self.locale.get("startup_commands.basic"))
+        self.add_console_line(self.locale.get("startup_commands.example1"))
+        self.add_console_line(self.locale.get("startup_commands.example2"))
+        self.add_console_line(self.locale.get("startup_commands.note"))
+        self.add_console_line(self.locale.get("startup_commands.movement"))
+        self.add_console_line(self.locale.get("startup_commands.exit"))
         
         # Komut satırı için
         self.current_command = ""

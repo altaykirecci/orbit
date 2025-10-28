@@ -1,0 +1,762 @@
+[
+  {
+    "x": 492,
+    "y": 258,
+    "type": "sun",
+    "name": "star_492_258",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 470,
+    "y": 240,
+    "type": "sun",
+    "name": "star_470_240",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 436,
+    "y": 246,
+    "type": "sun",
+    "name": "star_436_246",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 448,
+    "y": 265,
+    "type": "sun",
+    "name": "star_448_265",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 498,
+    "y": 294,
+    "type": "sun",
+    "name": "star_498_294",
+    "prop": "G",
+    "radius": 9
+  },
+  {
+    "x": 497,
+    "y": 245,
+    "type": "planet",
+    "name": "planet_497_245",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 13.756659499857205,
+    "star_id": 9,
+    "resources": {
+      "Ni": {
+        "score": 0.07903197288101711,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.1698049059116532,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.004364525353952662,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.03234224896849779,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.2498281420759467,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.3447624208984746,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 477,
+    "y": 246,
+    "type": "planet",
+    "name": "planet_477_246",
+    "prop": "rocky",
+    "radius": 1,
+    "orbit_radius": 9.669294255456975,
+    "star_id": 21,
+    "resources": {
+      "Ag": {
+        "score": 0.018641891541564794,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.40285771312161006,
+        "richness": "normal"
+      },
+      "O2": {
+        "score": 0.31128012474496075,
+        "richness": "normal"
+      },
+      "U": {
+        "score": 0.004342514408581433,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 461,
+    "y": 252,
+    "type": "planet",
+    "name": "planet_461_252",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 14.70995707985519,
+    "star_id": 21,
+    "resources": {
+      "U": {
+        "score": 0.004500886051403803,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.18013544119795827,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.03172152271837569,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 464,
+    "y": 262,
+    "type": "planet",
+    "name": "planet_464_262",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 23.040853359613227,
+    "star_id": 21,
+    "resources": {
+      "N2": {
+        "score": 0.251717792776078,
+        "richness": "normal"
+      },
+      "O2": {
+        "score": 0.3182781713635687,
+        "richness": "normal"
+      },
+      "B": {
+        "score": 0.006120494445276799,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.005114991770414472,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.22627670575931158,
+        "richness": "normal"
+      },
+      "Ag": {
+        "score": 0.028871042433838003,
+        "richness": "poor"
+      },
+      "Zn": {
+        "score": 0.1888525107321657,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0025694256129264337,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 409,
+    "y": 228,
+    "type": "planet",
+    "name": "planet_409_228",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 21.736277889059235,
+    "star_id": 28,
+    "resources": {
+      "N2": {
+        "score": 0.2825557453399458,
+        "richness": "normal"
+      },
+      "C": {
+        "score": 0.2490764450234762,
+        "richness": "normal"
+      },
+      "B": {
+        "score": 0.00398499553406162,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.0038653428443714954,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.164848364796616,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.3318313890810815,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 448,
+    "y": 251,
+    "type": "planet",
+    "name": "planet_448_251",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 12.36429371650036,
+    "star_id": 80,
+    "resources": {
+      "Pb": {
+        "score": 0.2508595649539454,
+        "richness": "normal"
+      },
+      "S": {
+        "score": 0.193670792964554,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.3080146941525348,
+        "richness": "normal"
+      },
+      "Ni": {
+        "score": 0.09352439806311418,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.060172609773698385,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.003824252112234729,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.012589639595101865,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.006230713386421751,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 427,
+    "y": 261,
+    "type": "planet",
+    "name": "planet_427_261",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 18.207965099762564,
+    "star_id": 80,
+    "resources": {
+      "S": {
+        "score": 0.16601044946133722,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.16695639123676254,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.12550448888488383,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.006035635404233328,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.008615118613585658,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.02542213729937472,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 426,
+    "y": 220,
+    "type": "planet",
+    "name": "planet_426_220",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 27.750770426848774,
+    "star_id": 80,
+    "resources": {
+      "S": {
+        "score": 0.19072166398532278,
+        "richness": "poor"
+      },
+      "O2": {
+        "score": 0.26871679776816276,
+        "richness": "normal"
+      },
+      "Fe": {
+        "score": 0.2827430605095461,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 428,
+    "y": 297,
+    "type": "planet",
+    "name": "planet_428_297",
+    "prop": "rocky",
+    "radius": 3,
+    "orbit_radius": 43.094302849249644,
+    "star_id": 86,
+    "resources": {
+      "U": {
+        "score": 0.004443805032204608,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.036679308389682364,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.2307154873620789,
+        "richness": "normal"
+      },
+      "C": {
+        "score": 0.3025619084826786,
+        "richness": "normal"
+      },
+      "Pb": {
+        "score": 0.2208995301012275,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 444,
+    "y": 277,
+    "type": "planet",
+    "name": "planet_444_277",
+    "prop": "ice",
+    "radius": 3,
+    "orbit_radius": 61.789033246618395,
+    "star_id": 86,
+    "resources": {
+      "O2": {
+        "score": 0.30574148303828874,
+        "richness": "normal"
+      },
+      "C": {
+        "score": 0.28383021725361707,
+        "richness": "normal"
+      },
+      "B": {
+        "score": 0.00549581802730829,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.06058699577648378,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.15153785059024574,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 453,
+    "y": 257,
+    "type": "planet",
+    "name": "planet_453_257",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 10.111734715224747,
+    "star_id": 89,
+    "resources": {
+      "Au": {
+        "score": 0.009884979810478051,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.021309902461441068,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.044609027607903466,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.11968621721164314,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.16026864504423194,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.07390002550889019,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.002609008755215461,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.004398986235500646,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 451,
+    "y": 246,
+    "type": "planet",
+    "name": "planet_451_246",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 19.651713290918586,
+    "star_id": 89,
+    "resources": {
+      "Cr": {
+        "score": 0.08078030580142835,
+        "richness": "poor"
+      },
+      "Zn": {
+        "score": 0.11517969009718819,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.005459627258432711,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.04014535648847322,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.2992790957646874,
+        "richness": "normal"
+      },
+      "Ni": {
+        "score": 0.1291951421665473,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.22769704495215076,
+        "richness": "normal"
+      },
+      "Th": {
+        "score": 0.0020294882317101167,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 453,
+    "y": 286,
+    "type": "planet",
+    "name": "planet_453_286",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 13.435734790987224,
+    "star_id": 90,
+    "resources": {
+      "Ag": {
+        "score": 0.024600901347708294,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0030889329772949433,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.15596628208708788,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.212016187196719,
+        "richness": "normal"
+      },
+      "Lignite": {
+        "score": 0.200708337050089,
+        "richness": "normal"
+      },
+      "S": {
+        "score": 0.17126167012095592,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 404,
+    "y": 291,
+    "type": "planet",
+    "name": "planet_404_291",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 11.233806043249519,
+    "star_id": 93,
+    "resources": {
+      "U": {
+        "score": 0.0038601716717216452,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.07897811537356811,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.24952542900501443,
+        "richness": "normal"
+      },
+      "Pb": {
+        "score": 0.17746187329180782,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.24636579294977878,
+        "richness": "normal"
+      },
+      "Fe": {
+        "score": 0.36259259560326185,
+        "richness": "normal"
+      },
+      "Ni": {
+        "score": 0.10440350571896254,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 480,
+    "y": 287,
+    "type": "planet",
+    "name": "planet_480_287",
+    "prop": "rocky",
+    "radius": 3,
+    "orbit_radius": 46.903947512157615,
+    "star_id": 106,
+    "resources": {
+      "Al2O3": {
+        "score": 0.05225089810759705,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.23067364984967823,
+        "richness": "normal"
+      },
+      "Cr": {
+        "score": 0.07114722506991689,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.19937150833908732,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.11089512874622177,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.16239257794124481,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.013449210037773331,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0032304102727478898,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 499,
+    "y": 278,
+    "type": "planet",
+    "name": "planet_499_278",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 16.953185219921263,
+    "star_id": 115,
+    "resources": {
+      "Ni": {
+        "score": 0.1005812048797654,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.2633544378118745,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.1163905564389353,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.22698600687552892,
+        "richness": "normal"
+      },
+      "B": {
+        "score": 0.004191965089295526,
+        "richness": "poor"
+      },
+      "O2": {
+        "score": 0.2717426757315175,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 402,
+    "y": 265,
+    "type": "planet",
+    "name": "planet_402_265",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 16.81692599394319,
+    "star_id": 118,
+    "resources": {
+      "Ni": {
+        "score": 0.0737428334685728,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.13076990113496853,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.01040990531851386,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.18537564068943388,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 416,
+    "y": 293,
+    "type": "planet",
+    "name": "planet_416_293",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 16.86596996330416,
+    "star_id": 119,
+    "resources": {
+      "Al2O3": {
+        "score": 0.05355387927117869,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.16257221605697444,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.007301085565048158,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.003500632536450677,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.24194992954911188,
+        "richness": "normal"
+      },
+      "U": {
+        "score": 0.004312695960386798,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 448,
+    "y": 265,
+    "type": "asteroid_belt",
+    "name": "belt_448_265_24",
+    "center_radius": 20.342622691266072,
+    "width": 44.22152574803601,
+    "fragment_count": 199,
+    "star_id": 89,
+    "resource_pool": {
+      "Cr": {
+        "score": 1.9188868305395792,
+        "richness": "rich"
+      },
+      "Pb": {
+        "score": 4.704566577176379,
+        "richness": "rich"
+      },
+      "Au": {
+        "score": 0.5346250651997606,
+        "richness": "normal"
+      },
+      "B": {
+        "score": 0.36645848941838577,
+        "richness": "normal"
+      },
+      "Al2O3": {
+        "score": 1.628020144030552,
+        "richness": "rich"
+      }
+    }
+  },
+  {
+    "x": 498,
+    "y": 294,
+    "type": "asteroid_belt",
+    "name": "belt_498_294_33",
+    "center_radius": 63.27730227667303,
+    "width": 67.24797663910644,
+    "fragment_count": 116,
+    "star_id": 115,
+    "resource_pool": {
+      "B": {
+        "score": 0.3592161442660741,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 6.237824622142466,
+        "richness": "rich"
+      },
+      "Cu": {
+        "score": 7.03068785328036,
+        "richness": "rich"
+      },
+      "Cr": {
+        "score": 2.3893283013644937,
+        "richness": "rich"
+      },
+      "S": {
+        "score": 3.0509308256284764,
+        "richness": "rich"
+      },
+      "Lignite": {
+        "score": 1.9978316476882343,
+        "richness": "rich"
+      },
+      "C": {
+        "score": 1.084191921872044,
+        "richness": "rich"
+      },
+      "U": {
+        "score": 0.63150215354447,
+        "richness": "normal"
+      }
+    }
+  }
+]

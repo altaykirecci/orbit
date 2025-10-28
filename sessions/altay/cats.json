@@ -1,0 +1,87 @@
+[
+  {
+    "name": "planet_103_330",
+    "type": "planet",
+    "x": 103,
+    "y": 330,
+    "prop": "rocky",
+    "resources": {
+      "O2": {
+        "score": 0.25859472931413074,
+        "richness": "normal"
+      },
+      "S": {
+        "score": 0.18581878204299063,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.16639389243555636,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.023956424765488874,
+        "richness": "poor"
+      }
+    },
+    "saved_at": {
+      "ship_x": 108,
+      "ship_y": 332,
+      "timestamp": "2025-10-29T02:52:36.735599"
+    }
+  },
+  {
+    "name": "star_93_279",
+    "type": "sun",
+    "x": 93,
+    "y": 279,
+    "prop": "M",
+    "resources": {},
+    "saved_at": {
+      "ship_x": 103,
+      "ship_y": 281,
+      "timestamp": "2025-10-29T02:55:26.683742"
+    }
+  },
+  {
+    "name": "planet_104_275",
+    "type": "planet",
+    "x": 104,
+    "y": 275,
+    "prop": "rocky",
+    "resources": {
+      "Fe": {
+        "score": 0.5049999619500091,
+        "richness": "normal"
+      },
+      "Pb": {
+        "score": 0.2513836348225021,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.2967297209787296,
+        "richness": "normal"
+      },
+      "Cr": {
+        "score": 0.06454964882174814,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.25373481686767685,
+        "richness": "normal"
+      },
+      "Th": {
+        "score": 0.0030315527216843575,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.17756885544156734,
+        "richness": "poor"
+      }
+    },
+    "saved_at": {
+      "ship_x": 103,
+      "ship_y": 281,
+      "timestamp": "2025-10-29T02:56:13.669304"
+    }
+  }
+]

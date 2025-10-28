@@ -1,0 +1,107 @@
+{
+  "name": "103281",
+  "description": "",
+  "universe_name": "gora",
+  "created": "2025-10-29T02:56:48.560285",
+  "matrix_data": {
+    "center_x": 103,
+    "center_y": 281,
+    "matrix_start_x": 93,
+    "matrix_start_y": 271,
+    "matrix_size": 20,
+    "celestial_objects": [
+      {
+        "x": 93,
+        "y": 279,
+        "type": "sun",
+        "name": "star_93_279",
+        "prop": "M",
+        "radius": 5
+      },
+      {
+        "x": 104,
+        "y": 275,
+        "type": "planet",
+        "name": "planet_104_275",
+        "prop": "rocky",
+        "radius": 2,
+        "orbit_radius": 11.792674420725522,
+        "star_id": 57,
+        "resources": {
+          "Fe": {
+            "score": 0.5049999619500091,
+            "richness": "normal"
+          },
+          "Pb": {
+            "score": 0.2513836348225021,
+            "richness": "normal"
+          },
+          "Cu": {
+            "score": 0.2967297209787296,
+            "richness": "normal"
+          },
+          "Cr": {
+            "score": 0.06454964882174814,
+            "richness": "poor"
+          },
+          "Lignite": {
+            "score": 0.25373481686767685,
+            "richness": "normal"
+          },
+          "Th": {
+            "score": 0.0030315527216843575,
+            "richness": "poor"
+          },
+          "S": {
+            "score": 0.17756885544156734,
+            "richness": "poor"
+          }
+        }
+      },
+      {
+        "x": 108,
+        "y": 279,
+        "type": "planet",
+        "name": "planet_108_279",
+        "prop": "rocky",
+        "radius": 2,
+        "orbit_radius": 15.344171378323368,
+        "star_id": 57,
+        "resources": {
+          "O2": {
+            "score": 0.21679375127876888,
+            "richness": "normal"
+          },
+          "Au": {
+            "score": 0.009874986507750682,
+            "richness": "poor"
+          },
+          "N2": {
+            "score": 0.286753804932964,
+            "richness": "normal"
+          },
+          "Al2O3": {
+            "score": 0.0414009556772436,
+            "richness": "poor"
+          },
+          "Pb": {
+            "score": 0.25031648074448576,
+            "richness": "normal"
+          },
+          "Th": {
+            "score": 0.002488960103494029,
+            "richness": "poor"
+          },
+          "U": {
+            "score": 0.005399537559969927,
+            "richness": "poor"
+          },
+          "Cu": {
+            "score": 0.25676994022574295,
+            "richness": "normal"
+          }
+        }
+      }
+    ]
+  }
+}

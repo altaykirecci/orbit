@@ -175,6 +175,13 @@ class SpaceGamePygame:
         self.celestial_objects: List[CelestialObject] = []
         self.ship: Optional[Ship] = None
         
+        # Grid durumu
+        self.grid_enabled = False  # Varsayılan olarak kapalı
+        
+        # Radar alarm sistemi
+        self.radar_alarm = False  # Gök cismi alarmı
+        self.alarm_blink_timer = 0  # Yanıp sönme timer'ı
+        
         # Chunk Manager
         self.chunk_manager = ChunkManager(self.universe_size, 100)
         self.current_universe_name = "uzay"
@@ -182,9 +189,10 @@ class SpaceGamePygame:
         self.last_position_update = datetime.now()
         
         # UI alanları - Yeni 3 bölümlü düzen
-        self.left_width = int(self.screen_width * 0.25)      # Sol %25 - Linux konsolu
-        self.center_width = int(self.screen_width * 0.50)     # Orta %50 - Grid (20x20)
-        self.right_width = int(self.screen_width * 0.25)      # Sağ %25 - Dashboard/Radar/Sonda
+        self.left_width = int(self.screen_width * 0.30)      # Sol %30 - Linux konsolu
+        remaining_width = self.screen_width - self.left_width  # Kalan alan
+        self.center_width = int(remaining_width * 0.60)       # Orta - Kalan alanın %60'ı
+        self.right_width = remaining_width - self.center_width # Sağ - Kalan alan
         
         # Sol bölüm - Sadece konsol (tam yükseklik)
         self.console_height = self.screen_height  # Tam yükseklik
@@ -221,9 +229,6 @@ class SpaceGamePygame:
         
         # Görsel matris için - Evren boyutuna göre dinamik
         self.matrix_size = self.calculate_matrix_size()  # Evren boyutuna göre hesapla
-        self.cell_size = min(self.matrix_width // self.matrix_size, self.matrix_height // self.matrix_size)  # Dinamik boyut
-        self.matrix_x = self.left_width + (self.matrix_width - self.matrix_size * self.cell_size) // 2  # Sağ bölümde ortada
-        self.matrix_y = (self.matrix_height - self.matrix_size * self.cell_size) // 2  # Dikey ortada
         
         # Matris başlangıç koordinatları
         self.matrix_start_x = 0
@@ -262,9 +267,9 @@ class SpaceGamePygame:
         center_rect = pygame.Rect(self.left_width, 0, self.center_width, self.screen_height)
         pygame.draw.rect(self.screen, Colors.BLACK, center_rect)
         
-        # Sağ panel arka planı (koyu gri - Dashboard/Radar/Sonda)
+        # Sağ panel arka planı (siyah - Dashboard/Radar/Sonda)
         right_rect = pygame.Rect(self.left_width + self.center_width, 0, self.right_width, self.screen_height)
-        pygame.draw.rect(self.screen, Colors.DARK_GRAY, right_rect)
+        pygame.draw.rect(self.screen, Colors.BLACK, right_rect)
     
     def print_header(self):
         """Başlık çiz - kaldırıldı"""
@@ -346,13 +351,25 @@ class SpaceGamePygame:
         if not self.ship:
             return
         
-        # Orta bölüm arka planı (siyah)
-        matrix_rect = pygame.Rect(self.left_width, 0, self.matrix_width, self.matrix_height)
-        pygame.draw.rect(self.screen, Colors.BLACK, matrix_rect)
-        pygame.draw.rect(self.screen, Colors.LIGHT_GRAY, matrix_rect, 2)
+        # Orta bölüm arka planı (siyah) - Matris alanı konsol alanının bittiği yerden başlar
+        # Matrix'i orta panel içinde 15 pixel margin ile çiz
+        matrix_margin = 15
+        matrix_rect = pygame.Rect(
+            self.left_width + matrix_margin,  # Sol margin
+            matrix_margin,  # Üst margin
+            self.matrix_width - (2 * matrix_margin),  # Genişlik - iki yan margin
+            self.matrix_height - (2 * matrix_margin)  # Yükseklik - üst ve alt margin
+        )
         
-        # Grid çizgilerini çiz
-        self.draw_grid(matrix_rect)
+        # Cell size'ı matrix_rect boyutlarına göre hesapla
+        self.cell_size = min(matrix_rect.width // self.matrix_size, matrix_rect.height // self.matrix_size)
+        
+        pygame.draw.rect(self.screen, Colors.BLACK, matrix_rect)
+        pygame.draw.rect(self.screen, Colors.GREEN, matrix_rect, 2)  # Matris alanı etrafında yeşil çizgi
+        
+        # Grid çizgileri - grid_enabled durumuna göre
+        if self.grid_enabled:
+            self.draw_grid(matrix_rect)
         
         # 40x40 görsel matris çiz
         self.draw_visual_matrix(matrix_rect)
@@ -362,11 +379,10 @@ class SpaceGamePygame:
         if not self.mission_started or not self.ship:
             return
         
-        # Dashboard arka planı (koyu gri)
+        # Dashboard arka planı (siyah) - Matrix alanının bittiği yerden başlar
         dashboard_x = self.left_width + self.center_width
         dashboard_rect = pygame.Rect(dashboard_x, 0, self.right_width, self.dashboard_height)
-        pygame.draw.rect(self.screen, Colors.DARK_GRAY, dashboard_rect)
-        pygame.draw.rect(self.screen, Colors.WHITE, dashboard_rect, 2)
+        pygame.draw.rect(self.screen, Colors.BLACK, dashboard_rect)
         
         y_start = 10
         x_start = dashboard_x + 10
@@ -415,12 +431,11 @@ class SpaceGamePygame:
         if not self.mission_started or not self.ship:
             return
         
-        # Radar arka planı (koyu gri)
+        # Radar arka planı (siyah) - Matrix alanının bittiği yerden başlar
         radar_x = self.left_width + self.center_width
         radar_y = self.dashboard_height
         radar_rect = pygame.Rect(radar_x, radar_y, self.right_width, self.radar_height)
-        pygame.draw.rect(self.screen, Colors.DARK_GRAY, radar_rect)
-        pygame.draw.rect(self.screen, Colors.WHITE, radar_rect, 2)
+        pygame.draw.rect(self.screen, Colors.BLACK, radar_rect)
         
         y_start = radar_y + 10
         x_start = radar_x + 10
@@ -433,21 +448,29 @@ class SpaceGamePygame:
         radar_range = self.font_medium.render("20 Nokta", True, Colors.WHITE)
         self.screen.blit(radar_range, (x_start, y_start + 30))
         
-        # Radar uyarısı (kırmızı) - şimdilik sabit
-        radar_alert = self.font_medium.render("[!] Cisim bulundu.", True, Colors.RED)
-        self.screen.blit(radar_alert, (x_start, y_start + 60))
+        # Radar alarm sistemi - Gök cismi varsa yanıp sönen alarm
+        if self.radar_alarm:
+            # Yanıp sönme efekti için timer
+            self.alarm_blink_timer += 1
+            if self.alarm_blink_timer > 30:  # 30 frame'de bir yanıp söner
+                self.alarm_blink_timer = 0
+            
+            # Yanıp sönme kontrolü
+            if self.alarm_blink_timer < 15:  # İlk 15 frame görünür
+                alarm_text = "[ALARM] GÖK CİSİMLERİ"
+                radar_alert = self.font_medium.render(alarm_text, True, Colors.RED)
+                self.screen.blit(radar_alert, (x_start, y_start + 60))
     
     def print_probe_panel(self):
         """Sağ alt - Sonda paneli"""
         if not self.mission_started or not self.ship:
             return
         
-        # Sonda arka planı (koyu gri)
+        # Sonda arka planı (siyah) - Matrix alanının bittiği yerden başlar
         probe_x = self.left_width + self.center_width
         probe_y = self.dashboard_height + self.radar_height
         probe_rect = pygame.Rect(probe_x, probe_y, self.right_width, self.probe_height)
-        pygame.draw.rect(self.screen, Colors.DARK_GRAY, probe_rect)
-        pygame.draw.rect(self.screen, Colors.WHITE, probe_rect, 2)
+        pygame.draw.rect(self.screen, Colors.BLACK, probe_rect)
         
         y_start = probe_y + 10
         x_start = probe_x + 10
@@ -573,18 +596,23 @@ class SpaceGamePygame:
         return cells
     
     def draw_grid(self, matrix_rect):
-        """Grid çizgilerini çiz - İnce çizgiler"""
+        """Grid çizgilerini çiz - grid_enabled durumuna göre"""
+        if not self.grid_enabled:
+            return
+            
         # Dikey çizgiler
-        for x in range(0, matrix_rect.width, self.cell_size):
+        for i in range(1, self.matrix_size):
+            x_pos = matrix_rect.left + i * self.cell_size
             pygame.draw.line(self.screen, Colors.LIGHT_GRAY, 
-                           (matrix_rect.left + x, matrix_rect.top), 
-                           (matrix_rect.left + x, matrix_rect.bottom), 1)
+                           (x_pos, matrix_rect.top), 
+                           (x_pos, matrix_rect.bottom), 1)
         
         # Yatay çizgiler
-        for y in range(0, matrix_rect.height, self.cell_size):
+        for j in range(1, self.matrix_size):
+            y_pos = matrix_rect.top + j * self.cell_size
             pygame.draw.line(self.screen, Colors.LIGHT_GRAY, 
-                           (matrix_rect.left, matrix_rect.top + y), 
-                           (matrix_rect.right, matrix_rect.top + y), 1)
+                           (matrix_rect.left, y_pos), 
+                           (matrix_rect.right, y_pos), 1)
     
     def draw_visual_matrix(self, matrix_rect):
         """Chunk-based dinamik matris çiz"""
@@ -624,6 +652,23 @@ class SpaceGamePygame:
         # Koordinat etiketlerini çiz
         self.draw_coordinate_labels(matrix_rect)
         
+        # Matrix alanındaki tüm gök cisimlerini bir seferde yükle (verimli)
+        matrix_objects = self.chunk_manager.get_objects_in_area(
+            self.matrix_start_x, self.matrix_start_y,
+            self.matrix_start_x + self.matrix_size - 1,
+            self.matrix_start_y + self.matrix_size - 1,
+            self.current_universe_name
+        )
+        
+        # Gök cisimlerini koordinat bazlı dictionary'ye çevir (hızlı arama)
+        objects_by_coord = {}
+        for obj in matrix_objects:
+            coord_key = (obj['x'], obj['y'])
+            objects_by_coord[coord_key] = obj
+        
+        # Radar alarm kontrolü - Matrix'te gök cismi var mı?
+        self.radar_alarm = len(matrix_objects) > 0
+        
         # Her hücreyi kontrol et ve çiz
         for i in range(self.matrix_size):
             for j in range(self.matrix_size):
@@ -636,9 +681,9 @@ class SpaceGamePygame:
                 border_color = Colors.DARK_GRAY
                 bottom_line_color = Colors.DARK_GRAY
                 
-                # Gemi pozisyonu (merkez) - kırmızı border
+                # Gemi pozisyonu (merkez) - kırmızı dolu
                 if real_x == self.ship.x and real_y == self.ship.y:
-                    color = Colors.BLACK
+                    color = Colors.RED  # İçini tamamen kırmızı doldur
                     border_color = Colors.RED
                     bottom_line_color = Colors.RED
                 # Yön hattındaki hücreler - sadece engine on ise
@@ -647,11 +692,9 @@ class SpaceGamePygame:
                         bottom_line_color = Colors.GREEN  # Henüz geçilmedi - yeşil
                     else:
                         bottom_line_color = Colors.TURQUOISE  # Geçildi - turkuaz
-                # 10 nokta içinde cisim var mı kontrol et
-                else:
-                    objects_in_range = self.get_objects_in_range(real_x, real_y, 10)
-                    if objects_in_range:
-                        color = Colors.YELLOW
+                # Bu hücrede gök cismi var mı kontrol et (hızlı dictionary arama)
+                elif (real_x, real_y) in objects_by_coord:
+                    color = Colors.YELLOW
                 
                 # Hücreyi çiz
                 cell_rect = pygame.Rect(
@@ -662,8 +705,7 @@ class SpaceGamePygame:
                 )
                 pygame.draw.rect(self.screen, color, cell_rect)
                 
-                # Hücre sınırları - Renkli border (ince)
-                pygame.draw.rect(self.screen, border_color, cell_rect, 1)
+                # Hücre sınırları kaldırıldı - sadece siyah ekran
                 
                 # Yön hattı çizgisi - Yön bazlı
                 if bottom_line_color != Colors.DARK_GRAY:
@@ -698,28 +740,44 @@ class SpaceGamePygame:
                                    (center_x, center_y + cross_size), 3)
     
     def draw_coordinate_labels(self, matrix_rect):
-        """Koordinat etiketlerini çiz"""
-        # X ekseni etiketleri (üst)
+        """Koordinat etiketlerini orta alana fit ederek çiz"""
+        # X ekseni etiketleri (alt) - Orta alana fit
         for i in range(0, self.matrix_size, 5):  # Her 5 hücrede bir
             real_x = self.matrix_start_x + i
             label_text = str(real_x)
             label_surface = self.font_small.render(label_text, True, Colors.WHITE)
-            self.screen.blit(label_surface, (matrix_rect.left + i * self.cell_size, matrix_rect.top - 15))
+            
+            # Matrix alanının içinde kalacak şekilde pozisyonla
+            x_pos = matrix_rect.left + i * self.cell_size + (self.cell_size // 2)
+            y_pos = matrix_rect.bottom - 10  # Matrix alanının içinde, alt kenardan 10 pixel yukarı
+            
+            # Matrix alanının sınırları içinde kal
+            if x_pos + label_surface.get_width() <= matrix_rect.right:
+                text_rect = label_surface.get_rect(center=(x_pos, y_pos))
+                self.screen.blit(label_surface, text_rect)
         
-        # Y ekseni etiketleri (sol)
+        # Y ekseni etiketleri (sol) - Matris alanının solunda
         for j in range(0, self.matrix_size, 5):  # Her 5 hücrede bir
             real_y = self.matrix_start_y + j
             label_text = str(real_y)
             label_surface = self.font_small.render(label_text, True, Colors.WHITE)
-            self.screen.blit(label_surface, (matrix_rect.left - 50, matrix_rect.top + j * self.cell_size))
+            
+            # Matrix alanının içinde, sol kenarda
+            x_pos = matrix_rect.left + 10  # Matrix alanının içinde, sol kenardan 10 pixel içeride
+            y_pos = matrix_rect.top + j * self.cell_size + (self.cell_size // 2)
+            
+            # Matrix alanının sınırları içinde kal
+            if y_pos + label_surface.get_height() <= matrix_rect.bottom:
+                text_rect = label_surface.get_rect(right=x_pos, centery=y_pos)
+                self.screen.blit(label_surface, text_rect)
     
     def get_objects_in_range(self, x: int, y: int, range_distance: int) -> List[dict]:
         """Chunk-based: Belirli bir noktadan belirli mesafede olan cisimleri bul"""
         # Chunk-based arama
-        min_x = x - range_distance
-        max_x = x + range_distance
-        min_y = y - range_distance
-        max_y = y + range_distance
+        min_x = int(x - range_distance)
+        max_x = int(x + range_distance)
+        min_y = int(y - range_distance)
+        max_y = int(y + range_distance)
         
         view_objects = self.chunk_manager.get_objects_in_area(
             min_x, min_y, max_x, max_y, self.current_universe_name
@@ -818,7 +876,6 @@ class SpaceGamePygame:
         # Komut satırı arka planı (tüm genişlik)
         command_rect = pygame.Rect(0, self.screen_height - 50, self.screen_width, 50)
         pygame.draw.rect(self.screen, Colors.DARK_GRAY, command_rect)
-        pygame.draw.line(self.screen, Colors.GREEN, (0, y_pos - 15), (self.screen_width, y_pos - 15), 2)
         
         # Dinamik prompt oluştur
         if self.ship and self.mission_started:
@@ -1049,8 +1106,6 @@ class SpaceGamePygame:
                 self.start_mission(velocity)
                 # Matrix boyutunu güncelle
                 self.matrix_size = self.calculate_matrix_size()
-                self.cell_size = min(self.matrix_width // self.matrix_size, self.matrix_height // self.matrix_size)
-                self.matrix_render_threshold = self.calculate_render_threshold()
                 
                 self.add_console_line(f"Evren yüklendi: {name}.json")
                 self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
@@ -1063,8 +1118,6 @@ class SpaceGamePygame:
                 self.start_mission(velocity)
                 # Matrix boyutunu güncelle
                 self.matrix_size = self.calculate_matrix_size()
-                self.cell_size = min(self.matrix_width // self.matrix_size, self.matrix_height // self.matrix_size)
-                self.matrix_render_threshold = self.calculate_render_threshold()
                 
                 self.add_console_line(f"Yeni evren oluşturuldu: {name}.json")
                 self.add_console_line(f"Boyut: {self.universe_size}x{self.universe_size}")
@@ -1229,6 +1282,21 @@ class SpaceGamePygame:
             self.console_lines.clear()
             self.add_console_line("Konsol temizlendi")
         
+        elif cmd == "grid":
+            if len(parts) > 1:
+                sub_cmd = parts[1].lower()
+                if sub_cmd == "on":
+                    self.grid_enabled = True
+                    self.add_console_line("Grid çizgileri açıldı")
+                elif sub_cmd == "off":
+                    self.grid_enabled = False
+                    self.add_console_line("Grid çizgileri kapatıldı")
+                else:
+                    self.add_console_line("HATA: grid on veya grid off kullanın", Colors.RED)
+            else:
+                status = "açık" if self.grid_enabled else "kapalı"
+                self.add_console_line(f"Grid durumu: {status}")
+        
         elif cmd == "help":
             self.show_help()
             self.add_console_line("Yardım menüsü gösteriliyor...")
@@ -1270,6 +1338,8 @@ EVREN YÖNETİMİ:
 DİĞER:
   status                                  - Detaylı durum
   time                                    - Mevcut zaman
+  grid on/off                             - Grid çizgilerini aç/kapat
+  clear/cls                               - Konsolu temizle
   help                                    - Bu yardım
   quit/exit                               - Çıkış
 

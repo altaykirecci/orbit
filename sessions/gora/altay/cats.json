@@ -104,5 +104,44 @@
       "ship_y": 183,
       "timestamp": "2025-10-29T04:11:46.661767"
     }
+  },
+  {
+    "name": "star_44_477",
+    "type": "sun",
+    "x": 44,
+    "y": 477,
+    "prop": "M",
+    "resources": {},
+    "saved_at": {
+      "ship_x": 35,
+      "ship_y": 484,
+      "timestamp": "2025-10-29T05:21:05.340297"
+    }
+  },
+  {
+    "name": "planet_35_486",
+    "type": "planet",
+    "x": 35,
+    "y": 486,
+    "prop": "rocky",
+    "resources": {
+      "Zn": {
+        "score": 0.15954267808865705,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.004613552506625414,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.07340125779799611,
+        "richness": "poor"
+      }
+    },
+    "saved_at": {
+      "ship_x": 35,
+      "ship_y": 484,
+      "timestamp": "2025-10-29T05:21:05.340311"
+    }
   }
 ]

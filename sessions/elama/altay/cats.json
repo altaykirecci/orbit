@@ -864,5 +864,107 @@
       "ship_y": 1000,
       "timestamp": "2025-10-29T05:06:19.517450"
     }
+  },
+  {
+    "name": "planet_267_57",
+    "type": "planet",
+    "x": 267,
+    "y": 57,
+    "prop": "rocky",
+    "resources": {
+      "N2": {
+        "score": 0.22078633134966616,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.3065223411751011,
+        "richness": "normal"
+      },
+      "Al2O3": {
+        "score": 0.043752192898501886,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.09638236679212751,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.12045353622374731,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.17358765755238192,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.0047564606721097165,
+        "richness": "poor"
+      }
+    },
+    "saved_at": {
+      "ship_x": 267,
+      "ship_y": 60,
+      "timestamp": "2025-10-29T05:16:26.791548"
+    }
+  },
+  {
+    "name": "planet_275_28",
+    "type": "planet",
+    "x": 275,
+    "y": 28,
+    "prop": "rocky",
+    "resources": {
+      "C": {
+        "score": 0.23430635067177527,
+        "richness": "normal"
+      },
+      "S": {
+        "score": 0.12329323415529544,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.12467793194311563,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.21095060200241816,
+        "richness": "normal"
+      }
+    },
+    "saved_at": {
+      "ship_x": 267,
+      "ship_y": 33,
+      "timestamp": "2025-10-29T05:16:48.686360"
+    }
+  },
+  {
+    "name": "planet_274_40",
+    "type": "planet",
+    "x": 274,
+    "y": 40,
+    "prop": "rocky",
+    "resources": {
+      "Au": {
+        "score": 0.007106841987038448,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.22356332004118154,
+        "richness": "normal"
+      },
+      "N2": {
+        "score": 0.29227813858753493,
+        "richness": "normal"
+      },
+      "O2": {
+        "score": 0.3421278921564356,
+        "richness": "normal"
+      }
+    },
+    "saved_at": {
+      "ship_x": 267,
+      "ship_y": 33,
+      "timestamp": "2025-10-29T05:16:48.686369"
+    }
   }
 ]

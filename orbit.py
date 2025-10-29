@@ -8,327 +8,25 @@ import random
 import json
 import os
 from datetime import datetime
-from enum import Enum
 from typing import List, Optional, Tuple
 import math
+
+# Import modules
+from modules import (
+    Colors, Direction, CelestialType, StarType, BlackHoleClass,
+    PlanetType, ResourceType, ResourceRichness,
+    CelestialObject, Star, BlackHole, Planet, AsteroidBelt,
+    Ship, ChunkManager, UniverseConstants, LocaleManager
+)
 
 # Pygame başlat
 pygame.init()
 
-# Renkler (ANSI renk kodları yerine RGB)
-class Colors:
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    YELLOW = (255, 255, 0)
-    BLUE = (0, 0, 255)
-    MAGENTA = (255, 0, 255)
-    CYAN = (0, 255, 255)
-    GRAY = (128, 128, 128)
-    DARK_GRAY = (64, 64, 64)
-    LIGHT_GRAY = (192, 192, 192)
-    TURQUOISE = (64, 224, 208)  # Turkuaz rengi
-    NAVY = (0, 0, 128)  # Navy mavi
-    ORANGE = (255, 165, 0)  # Turuncu
+# Colors class imported from modules
 
-# Yön enum'u
-class Direction(Enum):
-    UP = "up"
-    DOWN = "down"
-    LEFT = "left"
-    RIGHT = "right"
+# Enum classes imported from modules
 
-# Celestial object types
-class CelestialType(Enum):
-    SUN = "sun"
-    BLACK_HOLE = "black_hole"
-    ASTEROID_BELT = "asteroid_belt"
-    PLANET = "planet"
-    COMET = "comet"
-
-# Star types
-class StarType(Enum):
-    M = "M"      # Red dwarf (70%)
-    K = "K"      # Orange dwarf (15%)
-    G = "G"      # Yellow dwarf (8%)
-    HOT = "Hot"  # F/A/B/O hot stars (7%)
-
-# Black hole classes
-class BlackHoleClass(Enum):
-    STELLAR = "stellar"           # Stellar mass (85%)
-    INTERMEDIATE = "intermediate"  # Intermediate mass (14%)
-    SUPERMASSIVE = "super"        # Supermassive (1%)
-
-# Planet types
-class PlanetType(Enum):
-    ROCKY = "rocky"   # Rocky (inner planets)
-    GAS = "gas"       # Gas giant (outer planets)
-    ICE = "ice"       # Ice planet (middle distance)
-
-# Resource types
-class ResourceType(Enum):
-    # Metals
-    IRON = "Fe"
-    COPPER = "Cu"
-    GOLD = "Au"
-    SILVER = "Ag"
-    BAUXITE = "Al2O3"
-    CHROMIUM = "Cr"
-    LEAD = "Pb"
-    ZINC = "Zn"
-    NICKEL = "Ni"
-    BORON = "B"
-    
-    # Energy Resources
-    COAL = "C"
-    LIGNITE = "Lignite"
-    SULFUR = "S"
-    URANIUM = "U"
-    THORIUM = "Th"
-    
-    # Gases
-    CARBON = "C"
-    OXYGEN = "O2"
-    NITROGEN = "N2"
-
-# Resource richness levels
-class ResourceRichness(Enum):
-    POOR = "poor"
-    NORMAL = "normal"
-    RICH = "rich"
-
-# Celestial object class
-class CelestialObject:
-    def __init__(self, x: int, y: int, obj_type: CelestialType, name: str = ""):
-        self.x = x
-        self.y = y
-        self.obj_type = obj_type
-        self.name = name or f"{obj_type.value}_{random.randint(1, 1000)}"
-
-# Star class
-class Star:
-    def __init__(self, x: float, y: float, star_type: StarType, radius: float, star_id: int):
-        self.x = x
-        self.y = y
-        self.star_type = star_type
-        self.radius = radius
-        self.star_id = star_id
-        self.planets = []
-        self.asteroid_belts = []
-
-# Black hole class
-class BlackHole:
-    def __init__(self, x: float, y: float, bh_class: BlackHoleClass, bh_id: int):
-        self.x = x
-        self.y = y
-        self.bh_class = bh_class
-        self.bh_id = bh_id
-        
-        # Influence radius and exclusion radius
-        self.R_infl = {"stellar": 400, "intermediate": 2500, "super": 10000}[bh_class.value]
-        self.R_excl = 1.5 * self.R_infl
-
-# Planet class
-class Planet:
-    def __init__(self, x: float, y: float, orbit_radius: float, orbit_angle: float, 
-                 planet_type: PlanetType, radius: float, star_id: int, planet_id: int):
-        self.x = x
-        self.y = y
-        self.orbit_radius = orbit_radius
-        self.orbit_angle = orbit_angle
-        self.planet_type = planet_type
-        self.radius = radius
-        self.star_id = star_id
-        self.planet_id = planet_id
-        self.resources = {}
-
-# Asteroid belt class
-class AsteroidBelt:
-    def __init__(self, star_id: int, center_radius: float, width: float, belt_id: int):
-        self.star_id = star_id
-        self.center_radius = center_radius
-        self.width = width
-        self.belt_id = belt_id
-        self.radius = width / 2  # Belt radius as half of width
-        self.fragment_count = random.randint(20, 200)
-        self.resource_pool = {}
-
-# Ship class
-class Ship:
-    def __init__(self, x: int, y: int, universe_size: int = 200):
-        self.x = x
-        self.y = y
-        self.direction = Direction.UP
-        # Enerji: evrendeki tüm noktaları 3 defa ziyaret edecek kadar
-        # Her nokta değişikliğinde 1 birim enerji kaybedecek
-        self.max_energy = universe_size * universe_size * 3
-        self.energy = self.max_energy
-        self.speed = 1  # dakika cinsinden
-        self.is_moving = False
-        self.start_time: Optional[datetime] = None
-        self.mission_start_time: Optional[datetime] = None
-
-# Chunk Manager sınıfı
-class ChunkManager:
-    def __init__(self, universe_size, chunk_size=100):
-        self.universe_size = universe_size
-        self.chunk_size = chunk_size
-        self.chunks = {}  # Loaded chunks
-        self.loaded_chunks = set()
-        self.max_loaded_chunks = 25  # Maximum 5x5 area (500x500)
-    
-    def get_chunk_coords(self, x, y):
-        """Convert coordinates to chunk coordinates"""
-        return (x // self.chunk_size, y // self.chunk_size)
-    
-    def get_chunk_file_path(self, chunk_x, chunk_y, universe_name):
-        """Generate chunk file path"""
-        return f"universes/{universe_name}/chunk_{chunk_x}_{chunk_y}.json"
-    
-    def load_chunk(self, chunk_x, chunk_y, universe_name):
-        """Load chunk from file"""
-        if (chunk_x, chunk_y) in self.loaded_chunks:
-            return self.chunks.get((chunk_x, chunk_y), [])
-        
-        chunk_file = self.get_chunk_file_path(chunk_x, chunk_y, universe_name)
-        if os.path.exists(chunk_file):
-            try:
-                with open(chunk_file, 'r', encoding='utf-8') as f:
-                    chunk_data = json.load(f)
-                self.chunks[(chunk_x, chunk_y)] = chunk_data
-                self.loaded_chunks.add((chunk_x, chunk_y))
-                return chunk_data
-            except Exception as e:
-                print(f"Error loading chunk: {e}")
-                return []
-        return []
-    
-    def unload_distant_chunks(self, ship_x, ship_y, max_distance=2):
-        """Unload distant chunks from memory"""
-        ship_chunk = self.get_chunk_coords(ship_x, ship_y)
-        chunks_to_remove = []
-        
-        for chunk_coord in self.loaded_chunks:
-            distance = max(abs(chunk_coord[0] - ship_chunk[0]), 
-                          abs(chunk_coord[1] - ship_chunk[1]))
-            if distance > max_distance:
-                chunks_to_remove.append(chunk_coord)
-        
-        for chunk_coord in chunks_to_remove:
-            if chunk_coord in self.chunks:
-                del self.chunks[chunk_coord]
-            self.loaded_chunks.remove(chunk_coord)
-    
-    def get_objects_in_area(self, min_x, min_y, max_x, max_y, universe_name):
-        """Return all objects in specified area"""
-        objects = []
-        
-        # Calculate chunks covering this area
-        min_chunk_x = min_x // self.chunk_size
-        max_chunk_x = max_x // self.chunk_size
-        min_chunk_y = min_y // self.chunk_size
-        max_chunk_y = max_y // self.chunk_size
-        
-        # Load each chunk
-        for chunk_x in range(min_chunk_x, max_chunk_x + 1):
-            for chunk_y in range(min_chunk_y, max_chunk_y + 1):
-                chunk_objects = self.load_chunk(chunk_x, chunk_y, universe_name)
-                
-                # Filter objects in chunk
-                for obj in chunk_objects:
-                    if (min_x <= obj['x'] <= max_x and 
-                        min_y <= obj['y'] <= max_y):
-                        objects.append(obj)
-        
-        return objects
-
-# Universe generation constants
-class UniverseConstants:
-    BASE_STAR_DENOMINATOR = 2000      # normal preset: 1 star / 2000 area units
-    MIN_STAR_COUNT = 3
-    MAX_STAR_COUNT = 20000            # game / performance limit
-    BH_DENOMINATOR = 1_000_000       # 1 BH per 1M area (normal)
-    ASTEROID_BELT_PROB = 0.30        # asteroid belt creation probability per star
-    PLANET_MEAN_PER_STAR = 3.5       # average planet count (Poisson)
-    PLANET_ORBIT_RATIO_RANGE = (1.2, 1.6)
-    MIN_STAR_SPACING_FACTOR = 0.5     # D_min = factor * sqrt(A/N)
-    BH_EXCLUSION_FACTOR = 1.5         # exclusion radius = factor * R_infl
-    
-    # Resource base abundance values
-    BASE_RESOURCE_ABUNDANCE = {
-        # Metals - Common to rare
-        ResourceType.IRON: {"planet": 0.8, "asteroid": 1.0},
-        ResourceType.COPPER: {"planet": 0.6, "asteroid": 0.8},
-        ResourceType.LEAD: {"planet": 0.4, "asteroid": 0.6},
-        ResourceType.ZINC: {"planet": 0.3, "asteroid": 0.5},
-        ResourceType.NICKEL: {"planet": 0.2, "asteroid": 0.4},
-        ResourceType.CHROMIUM: {"planet": 0.15, "asteroid": 0.3},
-        ResourceType.BAUXITE: {"planet": 0.1, "asteroid": 0.2},
-        ResourceType.SILVER: {"planet": 0.05, "asteroid": 0.15},
-        ResourceType.GOLD: {"planet": 0.02, "asteroid": 0.08},
-        ResourceType.BORON: {"planet": 0.01, "asteroid": 0.05},
-        
-        # Energy Resources
-        ResourceType.COAL: {"planet": 0.7, "asteroid": 0.3},
-        ResourceType.LIGNITE: {"planet": 0.5, "asteroid": 0.2},
-        ResourceType.SULFUR: {"planet": 0.3, "asteroid": 0.4},
-        ResourceType.URANIUM: {"planet": 0.01, "asteroid": 0.05},
-        ResourceType.THORIUM: {"planet": 0.005, "asteroid": 0.02},
-        
-        # Gases - Atmospheric
-        ResourceType.CARBON: {"planet": 0.4, "asteroid": 0.1},
-        ResourceType.OXYGEN: {"planet": 0.6, "asteroid": 0.2},
-        ResourceType.NITROGEN: {"planet": 0.5, "asteroid": 0.1}
-    }
-    
-    # Resource richness thresholds
-    RESOURCE_THRESHOLD_HIGH = 1.0
-    RESOURCE_THRESHOLD_LOW = 0.2
-
-# Locale Manager class
-class LocaleManager:
-    def __init__(self, default_language="en"):
-        self.current_language = default_language
-        self.translations = {}
-        self.load_language(default_language)
-    
-    def load_language(self, language_code):
-        """Load language file"""
-        try:
-            with open(f"loc/{language_code}.json", 'r', encoding='utf-8') as f:
-                self.translations = json.load(f)
-                self.current_language = language_code
-        except FileNotFoundError:
-            print(f"Language file not found: loc/{language_code}.json")
-            # Fallback to English
-            if language_code != "en":
-                self.load_language("en")
-        except Exception as e:
-            print(f"Error loading language {language_code}: {e}")
-            if language_code != "en":
-                self.load_language("en")
-    
-    def get(self, key, **kwargs):
-        """Get translated string with optional formatting"""
-        try:
-            # Navigate through nested keys (e.g., "help.title")
-            keys = key.split('.')
-            value = self.translations
-            for k in keys:
-                value = value[k]
-            
-            # Format string if kwargs provided
-            if kwargs:
-                return value.format(**kwargs)
-            return value
-        except (KeyError, TypeError):
-            # Return key if translation not found
-            return key
-    
-    def set_language(self, language_code):
-        """Change language"""
-        self.load_language(language_code)
+# All classes imported from modules
 
 # Main game class
 class SpaceGamePygame:
@@ -345,7 +43,7 @@ class SpaceGamePygame:
         # Font ayarları - Orbitron + Liberation Mono
         try:
             # UI için Orbitron
-            self.font_small = pygame.font.Font("fonts/orbitron-regular.ttf", 14)
+            self.font_small = pygame.font.Font("fonts/orbitron-regular.ttf", 8)
             self.font_medium = pygame.font.Font("fonts/orbitron-regular.ttf", 16)
             self.font_large = pygame.font.Font("fonts/orbitron-regular.ttf", 20)
             self.font_xlarge = pygame.font.Font("fonts/orbitron-regular.ttf", 24)
@@ -355,7 +53,7 @@ class SpaceGamePygame:
         except Exception as e:
             print(f"Font yükleme hatası: {e}")
             # Sistem varsayılan font'u kullan
-            self.font_small = pygame.font.Font(None, 14)
+            self.font_small = pygame.font.Font(None, 8)
             self.font_medium = pygame.font.Font(None, 16)
             self.font_large = pygame.font.Font(None, 20)
             self.font_xlarge = pygame.font.Font(None, 24)
@@ -569,7 +267,8 @@ class SpaceGamePygame:
         
         # Orta bölüm arka planı (siyah) - Matris alanı konsol alanının bittiği yerden başlar
         # Matrix'i orta panel içinde ortalayacak şekilde hesapla
-        matrix_margin = 15
+        # Koordinat sayıları için daha fazla alan bırak
+        matrix_margin = 30  # Artırıldı: 15 -> 30
         
         # Önce cell size'ı hesapla (kare hücreler için)
         available_width = self.matrix_width - (2 * matrix_margin)
@@ -650,7 +349,7 @@ class SpaceGamePygame:
                 x_width = x_surface.get_width()
                 separator_width = separator_surface.get_width()
                 
-                self.screen.blit(x_surface, (x_start, y_start + 60))
+        self.screen.blit(x_surface, (x_start, y_start + 60))
                 self.screen.blit(separator_surface, (x_start + x_width, y_start + 60))
                 self.screen.blit(y_surface, (x_start + x_width + separator_width, y_start + 60))
             else:
@@ -980,33 +679,33 @@ class SpaceGamePygame:
     
     def draw_coordinate_labels(self, matrix_rect):
         """Koordinat etiketlerini orta alana fit ederek çiz"""
-        # X ekseni etiketleri (alt) - Orta alana fit
+        # X ekseni etiketleri (alt) - Matrix alanının dışında
         for i in range(0, self.matrix_size, 5):  # Her 5 hücrede bir
             real_x = self.matrix_start_x + i
             label_text = str(real_x)
             label_surface = self.font_small.render(label_text, True, Colors.WHITE)
             
-            # Matrix alanının içinde kalacak şekilde pozisyonla
+            # Matrix alanının dışında, alt kenarda
             x_pos = matrix_rect.left + i * self.cell_size + (self.cell_size // 2)
-            y_pos = matrix_rect.bottom - 10  # Matrix alanının içinde, alt kenardan 10 pixel yukarı
+            y_pos = matrix_rect.bottom + 15  # Matrix alanının dışında, alt kenardan 15 pixel aşağı
             
-            # Matrix alanının sınırları içinde kal
-            if x_pos + label_surface.get_width() <= matrix_rect.right:
+            # Orta panel sınırları içinde kal
+            if x_pos + label_surface.get_width() <= matrix_rect.right + 30:
                 text_rect = label_surface.get_rect(center=(x_pos, y_pos))
                 self.screen.blit(label_surface, text_rect)
         
-        # Y ekseni etiketleri (sol) - Matris alanının solunda
+        # Y ekseni etiketleri (sol) - Matrix alanının dışında
         for j in range(0, self.matrix_size, 5):  # Her 5 hücrede bir
             real_y = self.matrix_start_y + j
             label_text = str(real_y)
             label_surface = self.font_small.render(label_text, True, Colors.WHITE)
             
-            # Matrix alanının içinde, sol kenarda
-            x_pos = matrix_rect.left + 10  # Matrix alanının içinde, sol kenardan 10 pixel içeride
+            # Matrix alanının dışında, sol kenarda
+            x_pos = matrix_rect.left - 15  # Matrix alanının dışında, sol kenardan 15 pixel sola
             y_pos = matrix_rect.top + j * self.cell_size + (self.cell_size // 2)
             
-            # Matrix alanının sınırları içinde kal
-            if y_pos + label_surface.get_height() <= matrix_rect.bottom:
+            # Orta panel sınırları içinde kal
+            if y_pos + label_surface.get_height() <= matrix_rect.bottom + 30:
                 text_rect = label_surface.get_rect(right=x_pos, centery=y_pos)
                 self.screen.blit(label_surface, text_rect)
     
@@ -1333,8 +1032,10 @@ class SpaceGamePygame:
         try:
             if not hasattr(self, 'current_session_name') or not self.current_session_name:
                 return []
+            if not hasattr(self, 'current_universe_name') or not self.current_universe_name:
+                return []
             
-            catalog_path = f"sessions/{self.current_session_name}/cats.json"
+            catalog_path = f"sessions/{self.current_universe_name}/{self.current_session_name}/cats.json"
             with open(catalog_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
@@ -1349,26 +1050,33 @@ class SpaceGamePygame:
             if not hasattr(self, 'current_session_name') or not self.current_session_name:
                 self.add_console_line("ERROR: No active session!", Colors.RED)
                 return
+            if not hasattr(self, 'current_universe_name') or not self.current_universe_name:
+                self.add_console_line("ERROR: No active universe!", Colors.RED)
+                return
             
-            catalog_path = f"sessions/{self.current_session_name}/cats.json"
+            catalog_path = f"sessions/{self.current_universe_name}/{self.current_session_name}/cats.json"
             with open(catalog_path, 'w', encoding='utf-8') as f:
                 json.dump(catalog, f, indent=2, ensure_ascii=False)
         except Exception as e:
             self.add_console_line(f"Error saving catalog: {e}", Colors.RED)
     
-    def setup_session_structure(self, session_name):
+    def setup_session_structure(self, session_name, universe_name):
         """Create session folder structure"""
         try:
             # Create sessions folder if it doesn't exist
             sessions_dir = "sessions"
             os.makedirs(sessions_dir, exist_ok=True)
             
-            # Create session folder
-            session_dir = f"sessions/{session_name}"
+            # Create universe folder under sessions
+            universe_dir = f"sessions/{universe_name}"
+            os.makedirs(universe_dir, exist_ok=True)
+            
+            # Create session folder under universe
+            session_dir = f"sessions/{universe_name}/{session_name}"
             os.makedirs(session_dir, exist_ok=True)
             
             # Create maps subfolder
-            maps_dir = f"sessions/{session_name}/maps"
+            maps_dir = f"sessions/{universe_name}/{session_name}/maps"
             os.makedirs(maps_dir, exist_ok=True)
             
             self.add_console_line(f"Session structure created: {session_dir}", Colors.CYAN)
@@ -1799,15 +1507,15 @@ class SpaceGamePygame:
             if len(parts) > 1:
                 sub_cmd = parts[1].lower()
                 if sub_cmd == "universe" or sub_cmd == "u":
-                    self.show_universe_info()
+                self.show_universe_info()
                 elif sub_cmd == "objects" or sub_cmd == "o":
                     self.show_matrix_objects_info()
-                else:
-                    self.add_console_line("HATA: Geçersiz parametre! Kullanım: info universe/objects veya i u/o", Colors.RED)
             else:
-                self.add_console_line("HATA: info universe/objects kullanın veya i u/o", Colors.RED)
+                self.add_console_line("HATA: Geçersiz parametre! Kullanım: info universe/objects veya i u/o", Colors.RED)
+        else:
+            self.add_console_line("HATA: info universe/objects kullanın veya i u/o", Colors.RED)
         
-        elif cmd in ["universe", "u"]:
+        if cmd in ["universe", "u"]:
             # Parametreleri parse et
             name = None
             size = 200  # Default boyut (dokümantasyona göre)
@@ -1862,7 +1570,7 @@ class SpaceGamePygame:
                 session_name = name
             
             # Session klasör yapısını oluştur
-            self.setup_session_structure(session_name)
+            self.setup_session_structure(session_name, name)
             
             # Mevcut evreni kontrol et
             universe_file = f"universes/{name}.json"
@@ -2034,7 +1742,7 @@ class SpaceGamePygame:
                 self.show_help(parts[1])
             else:
                 # Tüm komutlar için yardım göster
-                self.show_help()
+            self.show_help()
         
         elif cmd == "quit" or cmd == "exit":
             self.running = False
@@ -2728,7 +2436,7 @@ class SpaceGamePygame:
             return
         
         # Session maps klasörünü oluştur
-        maps_dir = f"sessions/{self.current_session_name}/maps"
+        maps_dir = f"sessions/{self.current_universe_name}/{self.current_session_name}/maps"
         os.makedirs(maps_dir, exist_ok=True)
         
         # Map dosya yolu
@@ -2782,7 +2490,7 @@ class SpaceGamePygame:
             self.add_console_line("ERROR: No active session!", Colors.RED)
             return
         
-        maps_dir = f"sessions/{self.current_session_name}/maps"
+        maps_dir = f"sessions/{self.current_universe_name}/{self.current_session_name}/maps"
         map_file = f"{maps_dir}/{map_name}.json"
         
         if not os.path.exists(map_file):
@@ -2801,7 +2509,7 @@ class SpaceGamePygame:
             self.add_console_line("ERROR: No active session!", Colors.RED)
             return
         
-        maps_dir = f"sessions/{self.current_session_name}/maps"
+        maps_dir = f"sessions/{self.current_universe_name}/{self.current_session_name}/maps"
         
         if not os.path.exists(maps_dir):
             self.add_console_line("Kayıtlı map bulunamadı.")
@@ -2844,7 +2552,7 @@ class SpaceGamePygame:
             self.add_console_line("ERROR: No active session!", Colors.RED)
             return
         
-        maps_dir = f"sessions/{self.current_session_name}/maps"
+        maps_dir = f"sessions/{self.current_universe_name}/{self.current_session_name}/maps"
         map_file = f"{maps_dir}/{map_name}.json"
         
         if not os.path.exists(map_file):

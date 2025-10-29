@@ -1,0 +1,2 @@
+[console_scripts]
+pyorbit = orbit.__main__:main

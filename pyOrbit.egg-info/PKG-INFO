@@ -1,3 +1,44 @@
+Metadata-Version: 2.4
+Name: pyOrbit
+Version: 1.0.0
+Summary: Uzay keşif simülasyon oyunu - Python ve Pygame ile geliştirilmiş
+Home-page: https://github.com/altaykirecci/pyorbit
+Author: Altay Kireççi
+Author-email: Altay Kireççi <altay@example.com>
+Maintainer-email: Altay Kireççi <altay@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/altaykirecci/orbit
+Project-URL: Documentation, https://github.com/altaykirecci/orbit#readme
+Project-URL: Repository, https://github.com/altaykirecci/orbit
+Project-URL: Bug Tracker, https://github.com/altaykirecci/orbit/issues
+Keywords: space,simulation,game,pygame,exploration,universe,astronomy
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Topic :: Games/Entertainment
+Classifier: Topic :: Games/Entertainment :: Simulation
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pygame>=2.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: black>=21.0; extra == "dev"
+Requires-Dist: flake8>=3.8; extra == "dev"
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
+
 # pyOrbit - Uzay Keşif Simülasyonu
 
 **by Altay Kireççi**

@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyOrbit"
+version = "1.0.0"
+description = "Uzay keşif simülasyon oyunu - Python ve Pygame ile geliştirilmiş"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Altay Kireççi", email = "altay@example.com"}
+]
+maintainers = [
+    {name = "Altay Kireççi", email = "altay@example.com"}
+]
+keywords = ["space", "simulation", "game", "pygame", "exploration", "universe", "astronomy"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Games/Entertainment",
+    "Topic :: Games/Entertainment :: Simulation",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "pygame>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black>=21.0",
+    "flake8>=3.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/altaykirecci/orbit"
+Documentation = "https://github.com/altaykirecci/orbit#readme"
+Repository = "https://github.com/altaykirecci/orbit"
+"Bug Tracker" = "https://github.com/altaykirecci/orbit/issues"
+
+[project.scripts]
+pyorbit = "orbit.__main__:main"
+
+[tool.setuptools]
+package-data = {orbit = ["loc/*.json", "fonts/*.ttf"]}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["orbit*"]
+exclude = ["tests*", "docs*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

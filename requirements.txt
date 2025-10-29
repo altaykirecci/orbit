@@ -1,0 +1,9 @@
+# ORBIT - Uzay Keşif Simülasyonu
+# Gerekli Python paketleri
+
+pygame>=2.0.0
+
+# Geliştirme için opsiyonel paketler
+# pytest>=6.0
+# black>=21.0
+# flake8>=3.8

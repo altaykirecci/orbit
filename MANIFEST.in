@@ -1,0 +1,43 @@
+include README.md
+include LICENSE
+include requirements.txt
+include pyproject.toml
+include setup.py
+
+recursive-include orbit *.py
+recursive-include orbit *.json
+recursive-include orbit *.ttf
+
+recursive-include loc *.json
+recursive-include fonts *.ttf
+
+exclude *.pyc
+exclude *.pyo
+exclude *.pyd
+exclude __pycache__
+exclude .git*
+exclude .DS_Store
+exclude *.egg-info
+exclude build
+exclude dist
+exclude venv
+exclude .venv
+exclude .pytest_cache
+exclude .coverage
+exclude .tox
+exclude .mypy_cache
+exclude .flake8
+exclude .black
+
+# Exclude development files
+exclude *.log
+exclude *.tmp
+exclude *.bak
+exclude *.swp
+exclude *.swo
+exclude *~
+
+# Exclude test files
+exclude test_*.py
+exclude tests/
+exclude docs/

@@ -1,0 +1,110 @@
+[
+  {
+    "x": 495,
+    "y": 693,
+    "type": "sun",
+    "name": "star_495_693",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 467,
+    "y": 693,
+    "type": "planet",
+    "name": "planet_467_693",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 18.623031260533125,
+    "star_id": 1022,
+    "resources": {
+      "Cr": {
+        "score": 0.08279254271133187,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.0039848564892032865,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.004836564636567067,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.0077758822264063,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.23240653607545186,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 458,
+    "y": 689,
+    "type": "planet",
+    "name": "planet_458_689",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 36.911480418400366,
+    "star_id": 1224,
+    "resources": {
+      "Cu": {
+        "score": 0.3575042892968014,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.10872493120000677,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.00598846423747296,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.04232209842954857,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.005327902520393826,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.16319970783681204,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.1882088197851007,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 414,
+    "y": 690,
+    "type": "planet",
+    "name": "planet_414_690",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 20.670890914883245,
+    "star_id": 1288,
+    "resources": {
+      "Lignite": {
+        "score": 0.2502525280179501,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.17827276189764807,
+        "richness": "poor"
+      },
+      "O2": {
+        "score": 0.3812538222177017,
+        "richness": "normal"
+      },
+      "Pb": {
+        "score": 0.1630940915714061,
+        "richness": "poor"
+      }
+    }
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "x": 898,
+    "y": 212,
+    "type": "planet",
+    "name": "planet_898_212",
+    "prop": "ice",
+    "radius": 3,
+    "orbit_radius": 82.30402474392909,
+    "star_id": 325,
+    "resources": {
+      "Zn": {
+        "score": 0.17282506110178047,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.010894750891904037,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.004752281390811384,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.2628027677396113,
+        "richness": "normal"
+      },
+      "Th": {
+        "score": 0.002381928225655029,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.17876411966845923,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.5519603219924577,
+        "richness": "normal"
+      },
+      "Ag": {
+        "score": 0.029592536030209615,
+        "richness": "poor"
+      }
+    }
+  }
+]

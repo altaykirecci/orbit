@@ -1,0 +1,118 @@
+[
+  {
+    "x": 317,
+    "y": 695,
+    "type": "planet",
+    "name": "planet_317_695",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 26.62643640386503,
+    "star_id": 669,
+    "resources": {
+      "Ni": {
+        "score": 0.08618922014527623,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.019437027365122622,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.0038169120527605438,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.14365938999688294,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0027785337325072624,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 306,
+    "y": 685,
+    "type": "planet",
+    "name": "planet_306_685",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 23.6944305575953,
+    "star_id": 1114,
+    "resources": {
+      "Fe": {
+        "score": 0.41593927111217904,
+        "richness": "normal"
+      },
+      "Au": {
+        "score": 0.008533492413987601,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.31675798480116407,
+        "richness": "normal"
+      },
+      "Ni": {
+        "score": 0.08894160659182848,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.005693373766804701,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 358,
+    "y": 696,
+    "type": "planet",
+    "name": "planet_358_696",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 14.609896393804277,
+    "star_id": 1538,
+    "resources": {
+      "Fe": {
+        "score": 0.3970411663514405,
+        "richness": "normal"
+      },
+      "Ag": {
+        "score": 0.021012304022403387,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.11721018962233246,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.00360057484030267,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 366,
+    "y": 683,
+    "type": "planet",
+    "name": "planet_366_683",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 23.13785507822763,
+    "star_id": 1538,
+    "resources": {
+      "Ni": {
+        "score": 0.12795924269383355,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.25347457619479785,
+        "richness": "normal"
+      },
+      "Fe": {
+        "score": 0.484972588923505,
+        "richness": "normal"
+      }
+    }
+  }
+]

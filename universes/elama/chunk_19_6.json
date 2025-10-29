@@ -1,0 +1,26 @@
+[
+  {
+    "x": 1987,
+    "y": 696,
+    "type": "planet",
+    "name": "planet_1987_696",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 15.396977822395444,
+    "star_id": 1517,
+    "resources": {
+      "N2": {
+        "score": 0.3065392998285372,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.31617617528591674,
+        "richness": "normal"
+      },
+      "Ag": {
+        "score": 0.030668089457200034,
+        "richness": "poor"
+      }
+    }
+  }
+]

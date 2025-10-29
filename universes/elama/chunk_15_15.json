@@ -1,0 +1,42 @@
+[
+  {
+    "x": 1509,
+    "y": 1515,
+    "type": "planet",
+    "name": "planet_1509_1515",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 19.12865157695291,
+    "star_id": 1620,
+    "resources": {
+      "O2": {
+        "score": 0.33451972555062254,
+        "richness": "normal"
+      },
+      "C": {
+        "score": 0.24595641107341149,
+        "richness": "normal"
+      },
+      "Cr": {
+        "score": 0.08930091127761594,
+        "richness": "poor"
+      },
+      "Zn": {
+        "score": 0.1575823221799595,
+        "richness": "poor"
+      },
+      "Ag": {
+        "score": 0.027959835552206904,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.3066559795545881,
+        "richness": "normal"
+      },
+      "U": {
+        "score": 0.004244596946464365,
+        "richness": "poor"
+      }
+    }
+  }
+]

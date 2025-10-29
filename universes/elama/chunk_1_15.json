@@ -1,0 +1,42 @@
+[
+  {
+    "x": 115,
+    "y": 1508,
+    "type": "planet",
+    "name": "planet_115_1508",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 34.10374178542217,
+    "star_id": 537,
+    "resources": {
+      "Zn": {
+        "score": 0.18921876294146805,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0023004945605450107,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.23619274205496715,
+        "richness": "normal"
+      },
+      "Au": {
+        "score": 0.008114865992461022,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.005746963558019096,
+        "richness": "poor"
+      },
+      "O2": {
+        "score": 0.23625527563696574,
+        "richness": "normal"
+      },
+      "Cr": {
+        "score": 0.08601654793575356,
+        "richness": "poor"
+      }
+    }
+  }
+]

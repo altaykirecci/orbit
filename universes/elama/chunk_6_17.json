@@ -1,0 +1,11 @@
+[
+  {
+    "x": 659,
+    "y": 1712,
+    "type": "black_hole",
+    "name": "blackhole_659_1712",
+    "prop": "stellar",
+    "R_infl": 400,
+    "R_excl": 600.0
+  }
+]

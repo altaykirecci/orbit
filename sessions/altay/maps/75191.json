@@ -1,0 +1,75 @@
+{
+  "name": "75191",
+  "description": "",
+  "universe_name": "gora",
+  "created": "2025-10-29T04:03:21.597392",
+  "matrix_data": {
+    "center_x": 75,
+    "center_y": 191,
+    "matrix_start_x": 65,
+    "matrix_start_y": 181,
+    "matrix_size": 20,
+    "celestial_objects": [
+      {
+        "x": 75,
+        "y": 197,
+        "type": "sun",
+        "name": "star_75_197",
+        "prop": "M",
+        "radius": 5
+      },
+      {
+        "x": 67,
+        "y": 183,
+        "type": "planet",
+        "name": "planet_67_183",
+        "prop": "rocky",
+        "radius": 2,
+        "orbit_radius": 21.26446558430453,
+        "star_id": 91,
+        "resources": {
+          "Cu": {
+            "score": 0.34694933729985106,
+            "richness": "normal"
+          },
+          "Al2O3": {
+            "score": 0.06194230753369925,
+            "richness": "poor"
+          },
+          "U": {
+            "score": 0.00504796348685535,
+            "richness": "poor"
+          },
+          "O2": {
+            "score": 0.2914571117342333,
+            "richness": "normal"
+          }
+        }
+      },
+      {
+        "x": 75,
+        "y": 197,
+        "type": "asteroid_belt",
+        "name": "belt_75_197_14",
+        "center_radius": 18.103502791362363,
+        "width": 25.35737093817926,
+        "fragment_count": 26,
+        "star_id": 47,
+        "resource_pool": {
+          "N2": {
+            "score": 0.34859600403883684,
+            "richness": "normal"
+          },
+          "Lignite": {
+            "score": 0.6456196734853445,
+            "richness": "normal"
+          },
+          "Ag": {
+            "score": 0.4172531564933515,
+            "richness": "normal"
+          }
+        }
+      }
+    ]
+  }
+}

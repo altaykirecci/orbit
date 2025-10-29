@@ -1,0 +1,23 @@
+{
+  "name": "3249",
+  "description": "güçlü yıldız",
+  "universe_name": "gora",
+  "created": "2025-10-29T03:50:05.449796",
+  "matrix_data": {
+    "center_x": 3,
+    "center_y": 249,
+    "matrix_start_x": -7,
+    "matrix_start_y": 239,
+    "matrix_size": 20,
+    "celestial_objects": [
+      {
+        "x": 2,
+        "y": 251,
+        "type": "sun",
+        "name": "star_2_251",
+        "prop": "Hot",
+        "radius": 12
+      }
+    ]
+  }
+}

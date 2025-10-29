@@ -1,0 +1,34 @@
+[
+  {
+    "x": 767,
+    "y": 460,
+    "type": "planet",
+    "name": "planet_767_460",
+    "prop": "ice",
+    "radius": 3,
+    "orbit_radius": 97.45916251904511,
+    "star_id": 1691,
+    "resources": {
+      "Au": {
+        "score": 0.014311713301467287,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.005889880159094535,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.17769897702636467,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.28445450546234635,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.15251989334012522,
+        "richness": "poor"
+      }
+    }
+  }
+]

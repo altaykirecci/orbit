@@ -1,0 +1,86 @@
+[
+  {
+    "x": 1193,
+    "y": 1990,
+    "type": "sun",
+    "name": "star_1193_1990",
+    "prop": "K",
+    "radius": 7
+  },
+  {
+    "x": 1197,
+    "y": 1973,
+    "type": "planet",
+    "name": "planet_1197_1973",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 17.78380151686401,
+    "star_id": 1464,
+    "resources": {
+      "Ag": {
+        "score": 0.03232026757867596,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.26737913145631803,
+        "richness": "normal"
+      },
+      "Fe": {
+        "score": 0.3078258366966258,
+        "richness": "normal"
+      },
+      "O2": {
+        "score": 0.34189823172105466,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.27136408008011675,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.16909677553715435,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.0047457569786334974,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.25223508064367955,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 1181,
+    "y": 1969,
+    "type": "planet",
+    "name": "planet_1181_1969",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 23.78130202738718,
+    "star_id": 1464,
+    "resources": {
+      "Au": {
+        "score": 0.01093965221866414,
+        "richness": "poor"
+      },
+      "Zn": {
+        "score": 0.11997040673622866,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.5165454695134827,
+        "richness": "normal"
+      },
+      "N2": {
+        "score": 0.2307269997923538,
+        "richness": "normal"
+      },
+      "Al2O3": {
+        "score": 0.0387495929143333,
+        "richness": "poor"
+      }
+    }
+  }
+]

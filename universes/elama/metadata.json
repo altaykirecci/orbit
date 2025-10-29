@@ -1,0 +1,13 @@
+{
+  "name": "elama",
+  "size": 2000,
+  "chunk_size": 100,
+  "created": "2025-10-29T05:02:05.658464",
+  "preset": "normal",
+  "statistics": {
+    "stars": 1944,
+    "black_holes": 4,
+    "planets": 3895,
+    "asteroid_belts": 580
+  }
+}

@@ -1,0 +1,54 @@
+[
+  {
+    "x": 214,
+    "y": 1307,
+    "type": "sun",
+    "name": "star_214_1307",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 219,
+    "y": 1316,
+    "type": "planet",
+    "name": "planet_219_1316",
+    "prop": "rocky",
+    "radius": 1,
+    "orbit_radius": 10.054693203534926,
+    "star_id": 1098,
+    "resources": {
+      "N2": {
+        "score": 0.31590403658877364,
+        "richness": "normal"
+      },
+      "U": {
+        "score": 0.003516684789287498,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.05936568808127352,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0024609840591918253,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.03967729336924608,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.4030603698247802,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.3111289505699964,
+        "richness": "normal"
+      },
+      "Au": {
+        "score": 0.008901858171504164,
+        "richness": "poor"
+      }
+    }
+  }
+]

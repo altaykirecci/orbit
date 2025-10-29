@@ -29,6 +29,8 @@ class Colors:
     DARK_GRAY = (64, 64, 64)
     LIGHT_GRAY = (192, 192, 192)
     TURQUOISE = (64, 224, 208)  # Turkuaz rengi
+    NAVY = (0, 0, 128)  # Navy mavi
+    ORANGE = (255, 165, 0)  # Turuncu
 
 # Yön enum'u
 class Direction(Enum):
@@ -372,6 +374,7 @@ class SpaceGamePygame:
         # Radar alarm sistemi
         self.radar_alarm = False  # Gök cismi alarmı
         self.alarm_blink_timer = 0  # Yanıp sönme timer'ı
+        self.coord_blink_timer = 0  # Koordinat yanıp sönme timer'ı
         
         # Chunk Manager
         self.chunk_manager = ChunkManager(self.universe_size, 100)
@@ -393,10 +396,10 @@ class SpaceGamePygame:
         self.matrix_width = self.center_width
         self.matrix_height = self.screen_height - 50
         
-        # Sağ bölüm - 3'e bölünmüş
-        self.dashboard_height = int(self.screen_height * 0.25)  # Dashboard %25
-        self.radar_height = int(self.screen_height * 0.15)      # Radar %15
-        self.probe_height = self.screen_height - self.dashboard_height - self.radar_height - 50  # Sonda kalan
+        # Sağ bölüm - Dashboard %40, Catalog %60
+        self.dashboard_height = int(self.screen_height * 0.40)  # Dashboard %40
+        self.radar_height = 0  # Radar kaldırıldı
+        self.probe_height = self.screen_height - self.dashboard_height - 50  # Catalog kalan %60
         
         # Komut satırı yüksekliği
         self.command_height = 50
@@ -476,10 +479,16 @@ class SpaceGamePygame:
         if len(self.command_output_lines) > self.max_command_output_lines:
             self.command_output_lines.pop(0)
     
-    def add_console_line(self, text: str, color=Colors.GREEN):
-        """Linux konsoluna yeni satır ekle"""
+    def add_console_line(self, text: str, color=Colors.WHITE):
+        """Linux konsoluna yeni satır ekle (zaman damgası olmadan)"""
+        self.console_lines.append((text, color))
+        if len(self.console_lines) > self.max_console_lines * 2:
+            self.console_lines = self.console_lines[-self.max_console_lines:]
+    
+    def add_command_line(self, command: str):
+        """Komut satırını yeşil renkte ve saat ile ekle"""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        self.console_lines.append((f"[{timestamp}] {text}", color))
+        self.console_lines.append((f"[{timestamp}] > {command}", Colors.GREEN))
         if len(self.console_lines) > self.max_console_lines * 2:
             self.console_lines = self.console_lines[-self.max_console_lines:]
     
@@ -492,19 +501,34 @@ class SpaceGamePygame:
         
         # Konsol satırlarını çiz (scroll ile) - Text wrap ile
         y_start = 10
-        visible_lines = self.console_lines[-self.max_console_lines:]
         
+        # Scroll hesaplama - Basit ve doğru yöntem
+        if len(self.console_lines) <= self.max_console_lines:
+            # Eğer toplam satır sayısı max'dan az ise, scroll yok
+            visible_lines = self.console_lines
+        else:
+            # Scroll ile gösterilecek satırları hesapla
+            start_index = max(0, len(self.console_lines) - self.max_console_lines - self.console_scroll)
+            end_index = len(self.console_lines) - self.console_scroll
+            visible_lines = self.console_lines[start_index:end_index]
+        
+        line_offset = 0
         for i, (line, color) in enumerate(visible_lines):
-            if y_start + i * 16 < self.console_height - 60:  # Komut satırı için yer bırak
+            if y_start + (i + line_offset) * 16 < self.console_height - 60:  # Komut satırı için yer bırak
                 # Text wrap için satırı böl
                 max_width = self.left_width - 20  # Sağ taraftan 20px boşluk
                 wrapped_lines = self.wrap_text(line, max_width)
                 
                 # Her wrapped satırı çiz
                 for j, wrapped_line in enumerate(wrapped_lines):
-                    if y_start + (i + j) * 16 < self.console_height - 60:
+                    current_y = y_start + (i + line_offset + j) * 16
+                    if current_y < self.console_height - 60:
                         text_surface = self.font_mono.render(wrapped_line, True, color)
-                        self.screen.blit(text_surface, (10, y_start + (i + j) * 16))
+                        self.screen.blit(text_surface, (10, current_y))
+                
+                # Wrap text olduğunda satırlar arasında boşluk bırak
+                if len(wrapped_lines) > 1:
+                    line_offset += len(wrapped_lines) - 1
     
     def wrap_text(self, text, max_width):
         """Text'i belirtilen genişliğe göre wrap yap"""
@@ -598,108 +622,113 @@ class SpaceGamePygame:
         dashboard_title = self.font_large.render("DashBoard", True, Colors.WHITE)
         self.screen.blit(dashboard_title, (x_start, y_start + 30))
         
-        # Koordinatlar - Hareket durumuna göre renk
-        x_color, y_color = self.get_coordinate_colors()
-        
-        # X koordinatı
-        x_text = f"X: {self.ship.x}"
-        x_surface = self.font_large.render(x_text, True, x_color)
-        self.screen.blit(x_surface, (x_start, y_start + 60))
-        
-        # Y koordinatı
-        y_text = f"Y: {self.ship.y}"
-        y_surface = self.font_large.render(y_text, True, y_color)
-        self.screen.blit(y_surface, (x_start, y_start + 85))
+        # Koordinatlar - Hareket durumuna göre renk ve yanıp sönme
+        if not self.engine_on:
+            # Engine off - Kırmızı ve yanıp sönsün
+            self.coord_blink_timer += 1
+            if self.coord_blink_timer > 30:  # 30 frame'de bir yanıp söner
+                self.coord_blink_timer = 0
+            
+            if self.coord_blink_timer < 15:  # İlk 15 frame görünür
+                coord_text = f"{self.ship.x} : {self.ship.y}"
+                coord_surface = self.font_large.render(coord_text, True, Colors.RED)
+                self.screen.blit(coord_surface, (x_start, y_start + 60))
+        else:
+            # Engine on - Yöne göre renk
+            if self.ship.direction in [Direction.UP, Direction.DOWN]:
+                # Yukarı/Aşağı - Y yeşil, X koyu gri
+                x_text = f"{self.ship.x}"
+                y_text = f"{self.ship.y}"
+                
+                x_surface = self.font_large.render(x_text, True, Colors.DARK_GRAY)
+                y_surface = self.font_large.render(y_text, True, Colors.GREEN)
+                
+                # " : " ayırıcısı
+                separator_surface = self.font_large.render(" : ", True, Colors.WHITE)
+                
+                # Pozisyonları hesapla
+                x_width = x_surface.get_width()
+                separator_width = separator_surface.get_width()
+                
+                self.screen.blit(x_surface, (x_start, y_start + 60))
+                self.screen.blit(separator_surface, (x_start + x_width, y_start + 60))
+                self.screen.blit(y_surface, (x_start + x_width + separator_width, y_start + 60))
+            else:
+                # Sağa/Sola - X yeşil, Y koyu gri
+                x_text = f"{self.ship.x}"
+                y_text = f"{self.ship.y}"
+                
+                x_surface = self.font_large.render(x_text, True, Colors.GREEN)
+                y_surface = self.font_large.render(y_text, True, Colors.DARK_GRAY)
+                
+                # " : " ayırıcısı
+                separator_surface = self.font_large.render(" : ", True, Colors.WHITE)
+                
+                # Pozisyonları hesapla
+                x_width = x_surface.get_width()
+                separator_width = separator_surface.get_width()
+                
+                self.screen.blit(x_surface, (x_start, y_start + 60))
+                self.screen.blit(separator_surface, (x_start + x_width, y_start + 60))
+                self.screen.blit(y_surface, (x_start + x_width + separator_width, y_start + 60))
         
         # Yön bilgisi kaldırıldı - koordinat renkleri yönü gösteriyor
         
         # Hız bilgisi (sarı) - Saniye/Nokta
         speed_text = f"{self.ship.speed:.2f} sn/nokta"
         speed_surface = self.font_medium.render(speed_text, True, Colors.YELLOW)
-        self.screen.blit(speed_surface, (x_start, y_start + 110))
+        self.screen.blit(speed_surface, (x_start, y_start + 85))
         
         # 24 saat hız bilgisi (yeşil)
         if hasattr(self, 'required_24h_speed') and self.required_24h_speed > 0:
             required_speed_text = f"24h: {self.required_seconds_per_point:.2f} sn/nokta"
             required_speed_surface = self.font_medium.render(required_speed_text, True, Colors.GREEN)
-            self.screen.blit(required_speed_surface, (x_start, y_start + 130))
+            self.screen.blit(required_speed_surface, (x_start, y_start + 105))
         
         # Enerji bilgisi (sarı)
         energy_text = f"{self.ship.energy} Nokta"
         energy_surface = self.font_medium.render(energy_text, True, Colors.YELLOW)
-        self.screen.blit(energy_surface, (x_start, y_start + 185))
+        self.screen.blit(energy_surface, (x_start, y_start + 160))
         
         energy_percent = (self.ship.energy / self.ship.max_energy) * 100
         energy_percent_text = f"(%{energy_percent:.1f})"
         energy_percent_surface = self.font_medium.render(energy_percent_text, True, Colors.YELLOW)
-        self.screen.blit(energy_percent_surface, (x_start, y_start + 205))
+        self.screen.blit(energy_percent_surface, (x_start, y_start + 180))
+        
+        # Alert sistemi - Dashboard'ın sonuna eklendi
+        if self.radar_alarm:
+            # Yanıp sönme efekti için timer
+            self.alarm_blink_timer += 1
+            if self.alarm_blink_timer > 30:  # 30 frame'de bir yanıp söner
+                self.alarm_blink_timer = 0
+            
+            # Yanıp sönme kontrolü
+            if self.alarm_blink_timer < 15:  # İlk 15 frame görünür
+                alert_text = "[ALERT] CELESTIAL OBJECTS"
+                alert_surface = self.font_medium.render(alert_text, True, Colors.RED)
+                self.screen.blit(alert_surface, (x_start, y_start + 200))
     
-    def print_radar_panel(self):
-        """Sağ orta - Katalog paneli"""
-        if not self.mission_started:
-            return
-        
-        # Katalog arka planı (siyah) - Matrix alanının bittiği yerden başlar
-        catalog_x = self.left_width + self.center_width
-        catalog_y = self.dashboard_height
-        catalog_rect = pygame.Rect(catalog_x, catalog_y, self.right_width, self.radar_height)
-        pygame.draw.rect(self.screen, Colors.BLACK, catalog_rect)
-        
-        y_start = catalog_y + 10
-        x_start = catalog_x + 10
-        
-        # Katalog başlığı
-        catalog_title = self.font_large.render("Catalog", True, Colors.WHITE)
-        self.screen.blit(catalog_title, (x_start, y_start))
-        
-        # Katalog istatistikleri
-        self.print_catalog_statistics(x_start, y_start + 40)
     
     def print_probe_panel(self):
-        """Sağ alt - Sonda paneli"""
+        """Sağ alt - Catalogs paneli"""
         if not self.mission_started:
             return
         
-        # Sonda arka planı (siyah) - Matrix alanının bittiği yerden başlar
-        probe_x = self.left_width + self.center_width
-        probe_y = self.dashboard_height + self.radar_height
-        probe_rect = pygame.Rect(probe_x, probe_y, self.right_width, self.probe_height)
-        pygame.draw.rect(self.screen, Colors.BLACK, probe_rect)
+        # Catalogs arka planı (siyah) - Dashboard'ın altından başlar
+        catalogs_x = self.left_width + self.center_width
+        catalogs_y = self.dashboard_height
+        catalogs_rect = pygame.Rect(catalogs_x, catalogs_y, self.right_width, self.probe_height)
+        pygame.draw.rect(self.screen, Colors.BLACK, catalogs_rect)
         
-        y_start = probe_y + 10
-        x_start = probe_x + 10
+        y_start = catalogs_y + 10
+        x_start = catalogs_x + 10
         
-        # Sonda başlığı
-        probe_title = self.font_large.render("Sonda Durumu", True, Colors.WHITE)
-        self.screen.blit(probe_title, (x_start, y_start))
+        # Catalogs başlığı
+        catalogs_title = self.font_large.render("Catalogs", True, Colors.WHITE)
+        self.screen.blit(catalogs_title, (x_start, y_start))
         
-        # Sonda durumları (şimdilik sabit)
-        probe_states = [
-            "[1] Hazır",
-            "[2] Hazır", 
-            "[3] Keşif",
-            "[4] Hazır"
-        ]
-        
-        probe_colors = [Colors.WHITE, Colors.WHITE, Colors.GREEN, Colors.WHITE]
-        
-        for i, (state, color) in enumerate(zip(probe_states, probe_colors)):
-            probe_surface = self.font_medium.render(state, True, color)
-            self.screen.blit(probe_surface, (x_start, y_start + 30 + (i * 25)))
-        
-        # Sonda koordinat ve hız bilgileri
-        probe_coords = f"{self.ship.x} {self.ship.y}"
-        probe_coords_surface = self.font_small.render(probe_coords, True, Colors.WHITE)
-        self.screen.blit(probe_coords_surface, (x_start, y_start + 140))
-        
-        points_per_minute = 10 / self.ship.speed
-        probe_speed = f"{points_per_minute:.0f} Nokta/dk"
-        probe_speed_surface = self.font_small.render(probe_speed, True, Colors.WHITE)
-        self.screen.blit(probe_speed_surface, (x_start, y_start + 160))
-        
-        probe_energy = f"{self.ship.energy} Nokta"
-        probe_energy_surface = self.font_small.render(probe_energy, True, Colors.WHITE)
-        self.screen.blit(probe_energy_surface, (x_start, y_start + 180))
+        # Katalog bilgilerini göster
+        self.print_catalog_statistics(x_start, y_start + 40)
     
     def get_direction_text(self):
         """Yön bilgisini Türkçe metin olarak döndür"""
@@ -889,7 +918,22 @@ class SpaceGamePygame:
                         bottom_line_color = Colors.TURQUOISE  # Geçildi - turkuaz
                 # Bu hücrede gök cismi var mı kontrol et (hızlı dictionary arama)
                 elif (real_x, real_y) in objects_by_coord:
-                    color = Colors.YELLOW
+                    obj = objects_by_coord[(real_x, real_y)]
+                    obj_type = obj.get('type', 'unknown')
+                    
+                    # Gök cismi türüne göre renk belirle
+                    if obj_type == 'sun':
+                        color = Colors.YELLOW  # Sarı
+                    elif obj_type == 'black_hole':
+                        color = Colors.DARK_GRAY  # Koyu gri
+                    elif obj_type == 'asteroid_belt':
+                        color = Colors.LIGHT_GRAY  # Açık gri
+                    elif obj_type == 'planet':
+                        color = Colors.NAVY  # Navy
+                    elif obj_type == 'comet':
+                        color = Colors.WHITE  # Beyaz
+                    else:
+                        color = Colors.YELLOW  # Varsayılan
                 
                 # Hücreyi çiz
                 cell_rect = pygame.Rect(
@@ -1063,7 +1107,7 @@ class SpaceGamePygame:
             for obj in collisions:
                 self.add_matrix_line(f"  - {obj.name} ({obj.obj_type.value}) ile çarpışıldı!", Colors.RED)
     
-    def add_matrix_line(self, text: str, color: tuple = Colors.GREEN):
+    def add_matrix_line(self, text: str, color: tuple = Colors.CYAN):
         """Matrix görüntüye yeni satır ekle"""
         current_time = datetime.now().strftime('%H:%M:%S')
         line = f"[{current_time}] {text}"
@@ -1197,14 +1241,62 @@ class SpaceGamePygame:
         # Save catalog
         self.save_catalog(catalog)
         
-        self.add_console_line(f"Celestial object '{celestial_name}' saved to catalog!", Colors.GREEN)
+        self.add_console_line(f"Celestial object '{celestial_name}' saved to catalog!", Colors.CYAN)
+    
+    def save_all_matrix_objects_to_catalog(self):
+        """Save all matrix objects to catalog"""
+        if not self.matrix_objects:
+            self.add_console_line("ERROR: No celestial objects in matrix!", Colors.RED)
+            return
+        
+        # Load existing catalog
+        catalog = self.load_catalog()
+        
+        # Get existing names to avoid duplicates
+        existing_names = {entry.get('name') for entry in catalog}
+        
+        saved_count = 0
+        skipped_count = 0
+        
+        for obj in self.matrix_objects:
+            obj_name = obj.get('name')
+            
+            # Skip if already exists
+            if obj_name in existing_names:
+                skipped_count += 1
+                continue
+            
+            # Create catalog entry
+            catalog_entry = {
+                "name": obj.get('name'),
+                "type": obj.get('type'),
+                "x": obj.get('x'),
+                "y": obj.get('y'),
+                "prop": obj.get('prop'),
+                "resources": obj.get('resources', {}),
+                "saved_at": {
+                    "ship_x": self.ship.x,
+                    "ship_y": self.ship.y,
+                    "timestamp": datetime.now().isoformat()
+                }
+            }
+            
+            # Add to catalog
+            catalog.append(catalog_entry)
+            existing_names.add(obj_name)
+            saved_count += 1
+        
+        # Save catalog
+        self.save_catalog(catalog)
+        
+        self.add_console_line(f"Catalog updated: {saved_count} objects saved, {skipped_count} skipped (already exists)", Colors.CYAN)
     
     def list_catalog(self):
         """List catalog contents"""
         catalog = self.load_catalog()
         
         if not catalog:
-            self.add_console_line("Catalog is empty.", Colors.YELLOW)
+            self.add_console_line("Catalog is empty.", Colors.CYAN)
             return
         
         self.add_console_line("=== CELESTIAL CATALOG ===", Colors.CYAN)
@@ -1213,7 +1305,7 @@ class SpaceGamePygame:
             self.add_console_line(f"    Position: ({entry['x']}, {entry['y']})", Colors.WHITE)
             self.add_console_line(f"    Type: {entry['prop']}", Colors.YELLOW)
             if entry.get('resources'):
-                self.add_console_line(f"    Resources: {len(entry['resources'])} types", Colors.GREEN)
+                self.add_console_line(f"    Resources: {len(entry['resources'])} types", Colors.CYAN)
             self.add_console_line(f"    Saved at: ({entry['saved_at']['ship_x']}, {entry['saved_at']['ship_y']})", Colors.CYAN)
             self.add_console_line("")
     
@@ -1229,12 +1321,12 @@ class SpaceGamePygame:
                 break
         
         if not celestial_obj:
-            self.add_console_line(f"ERROR: Celestial object '{celestial_name}' not found in catalog!", Colors.RED)
+            self.add_console_line(f"HATA: Katalogda '{celestial_name}' gök cismi bulunamadı!", Colors.RED)
             return
         
         # Teleport to coordinates
         self.teleport_ship(celestial_obj['x'], celestial_obj['y'])
-        self.add_console_line(f"Teleported to catalog object '{celestial_name}'!", Colors.GREEN)
+        self.add_console_line(f"Katalog nesnesine teleport edildi: '{celestial_name}'!", Colors.CYAN)
     
     def load_catalog(self):
         """Load catalog from session cats.json"""
@@ -1279,7 +1371,7 @@ class SpaceGamePygame:
             maps_dir = f"sessions/{session_name}/maps"
             os.makedirs(maps_dir, exist_ok=True)
             
-            self.add_console_line(f"Session structure created: {session_dir}", Colors.GREEN)
+            self.add_console_line(f"Session structure created: {session_dir}", Colors.CYAN)
             
         except Exception as e:
             self.add_console_line(f"Error creating session structure: {e}", Colors.RED)
@@ -1289,19 +1381,26 @@ class SpaceGamePygame:
         catalog = self.load_catalog()
         
         if not catalog:
-            no_catalog_text = "No objects in catalog"
-            no_catalog_surface = self.font_medium.render(no_catalog_text, True, Colors.LIGHT_GRAY)
-            self.screen.blit(no_catalog_surface, (x_start, y_start))
+            # Katalog yokken hiçbir şey gösterme
             return
+        
+        # Evrendeki toplam gök cismi sayılarını hesapla
+        total_objects = self.get_total_universe_objects()
         
         # Count by type
         type_counts = {}
         prop_counts = {}
-        total_resources = {}
+        resource_counts = {}
         
         for entry in catalog:
             obj_type = entry.get('type', 'unknown')
             prop = entry.get('prop', 'unknown')
+            
+            # None değerleri 'unknown' olarak değiştir
+            if obj_type is None:
+                obj_type = 'unknown'
+            if prop is None:
+                prop = 'unknown'
             
             # Count by type
             type_counts[obj_type] = type_counts.get(obj_type, 0) + 1
@@ -1313,43 +1412,83 @@ class SpaceGamePygame:
             resources = entry.get('resources', {})
             for resource_type, resource_data in resources.items():
                 if isinstance(resource_data, dict):
-                    score = resource_data.get('score', 0)
-                    total_resources[resource_type] = total_resources.get(resource_type, 0) + score
+                    resource_counts[resource_type] = resource_counts.get(resource_type, 0) + 1
         
         # Display statistics
         y_offset = y_start
         
-        # Total count
-        total_text = f"Total: {len(catalog)}"
-        total_surface = self.font_medium.render(total_text, True, Colors.WHITE)
-        self.screen.blit(total_surface, (x_start, y_offset))
+        # 1. TİPLER (Types)
+        type_title = self.font_medium.render("TYPES:", True, Colors.WHITE)
+        self.screen.blit(type_title, (x_start, y_offset))
         y_offset += 25
         
-        # Type counts
-        for obj_type, count in sorted(type_counts.items()):
-            type_text = f"{obj_type}: {count}"
+        for obj_type, catalog_count in sorted(type_counts.items()):
+            total_count = total_objects.get(obj_type, 0)
+            percentage = (catalog_count / total_count * 100) if total_count > 0 else 0
+            type_text = f"{obj_type}: {catalog_count} - {total_count} ({percentage:.1f}%)"
             type_surface = self.font_small.render(type_text, True, Colors.CYAN)
             self.screen.blit(type_surface, (x_start, y_offset))
-            y_offset += 20
+            y_offset += 18
         
-        y_offset += 10
+        y_offset += 15
         
-        # Prop counts
-        for prop, count in sorted(prop_counts.items()):
-            prop_text = f"{prop}: {count}"
+        # 2. ALT TİPLER (Props)
+        prop_title = self.font_medium.render("PROPS:", True, Colors.WHITE)
+        self.screen.blit(prop_title, (x_start, y_offset))
+        y_offset += 25
+        
+        for prop, catalog_count in sorted(prop_counts.items()):
+            # Bu prop'un evrendeki toplam sayısını hesapla
+            total_count = 0
+            for chunk_coord in self.chunk_manager.loaded_chunks:
+                chunk_objects = self.chunk_manager.chunks.get(chunk_coord, [])
+                for obj in chunk_objects:
+                    if obj.get('prop') == prop:
+                        total_count += 1
+            
+            percentage = (catalog_count / total_count * 100) if total_count > 0 else 0
+            prop_text = f"{prop}: {catalog_count} - {total_count} ({percentage:.1f}%)"
             prop_surface = self.font_small.render(prop_text, True, Colors.YELLOW)
             self.screen.blit(prop_surface, (x_start, y_offset))
-            y_offset += 20
+            y_offset += 18
         
-        y_offset += 10
+        y_offset += 15
         
-        # Resource totals
-        if total_resources:
-            for resource_type, total_score in sorted(total_resources.items()):
-                resource_text = f"{resource_type}: {total_score:.1f}"
-                resource_surface = self.font_small.render(resource_text, True, Colors.GREEN)
-                self.screen.blit(resource_surface, (x_start, y_offset))
-                y_offset += 20
+        # 3. RESOURCES
+        resource_title = self.font_medium.render("RESOURCES:", True, Colors.WHITE)
+        self.screen.blit(resource_title, (x_start, y_offset))
+        y_offset += 25
+        
+        for resource_type, catalog_count in sorted(resource_counts.items()):
+            # Bu resource'un evrendeki toplam sayısını hesapla
+            total_count = 0
+            for chunk_coord in self.chunk_manager.loaded_chunks:
+                chunk_objects = self.chunk_manager.chunks.get(chunk_coord, [])
+                for obj in chunk_objects:
+                    resources = obj.get('resources', {})
+                    if resource_type in resources:
+                        total_count += 1
+            
+            percentage = (catalog_count / total_count * 100) if total_count > 0 else 0
+            resource_text = f"{resource_type}: {catalog_count} - {total_count} ({percentage:.1f}%)"
+            resource_surface = self.font_small.render(resource_text, True, Colors.GREEN)
+            self.screen.blit(resource_surface, (x_start, y_offset))
+            y_offset += 18
+    
+    def get_total_universe_objects(self):
+        """Evrendeki toplam gök cismi sayılarını hesapla"""
+        total_counts = {}
+        
+        # Tüm yüklenmiş chunk'ları tara
+        for chunk_coord in self.chunk_manager.loaded_chunks:
+            chunk_objects = self.chunk_manager.chunks.get(chunk_coord, [])
+            for obj in chunk_objects:
+                obj_type = obj.get('type', 'unknown')
+                if obj_type is None:
+                    obj_type = 'unknown'
+                total_counts[obj_type] = total_counts.get(obj_type, 0) + 1
+        
+        return total_counts
     
     def get_next_position(self):
         """Bir sonraki pozisyonu hesapla"""
@@ -1441,6 +1580,9 @@ class SpaceGamePygame:
             return
         
         cmd = parts[0].lower()
+        
+        # Komut formatını göster (yeşil renkte ve saat ile)
+        self.add_command_line(command)
         
         if cmd == "go":
             # DEPRECATED: go komutu artık kullanımdan kaldırıldı
@@ -1534,12 +1676,14 @@ class SpaceGamePygame:
                 return
             
             if len(parts) < 2:
-                self.add_console_line("HATA: Kullanım: tp <x:y> veya tp --cat <name>")
+                self.add_console_line("HATA: Kullanım: tp <x:y> veya tp --cat <gokcismi_adı>")
+                self.add_console_line("Örnek: tp 100:200")
+                self.add_console_line("Örnek: tp --cat star_50_75")
                 return
             
             if parts[1] == "--cat":
                 if len(parts) < 3:
-                    self.add_console_line("ERROR: Celestial object name required! Usage: tp --cat <name>", Colors.RED)
+                    self.add_console_line("HATA: Gök cismi adı gerekli! Kullanım: tp --cat <gokcismi_adı>", Colors.RED)
                     return
                 
                 celestial_name = parts[2]
@@ -1556,11 +1700,10 @@ class SpaceGamePygame:
         
         elif cmd in ["list", "ls"]:
             self.list_universes()
-            self.add_console_line("Evren listesi gösteriliyor...")
         
         elif cmd == "test":
-            self.add_matrix_line("Test komutu başarılı!", Colors.GREEN)
-            self.add_console_line("Test komutu başarılı!")
+            self.add_matrix_line("Test komutu başarılı!", Colors.CYAN)
+            self.add_console_line("Test komutu başarılı!", Colors.CYAN)
         
         elif cmd in ["speed", "s"]:
             if not self.ship:
@@ -1617,6 +1760,25 @@ class SpaceGamePygame:
         elif cmd in ["clear", "cls"]:
             self.console_lines.clear()
             self.add_console_line("Konsol temizlendi")
+        
+        elif cmd == "↓" or cmd == "down":
+            # Konsol aşağı scroll (eski mesajlara git)
+            max_scroll = max(0, len(self.console_lines) - self.max_console_lines)
+            if self.console_scroll < max_scroll:
+                self.console_scroll += 1
+        
+        elif cmd == "↑" or cmd == "up":
+            # Konsol yukarı scroll (yeni mesajlara git)
+            if self.console_scroll > 0:
+                self.console_scroll -= 1
+        
+        elif cmd == "scrollinfo":
+            # Debug: Scroll bilgilerini göster
+            max_scroll = max(0, len(self.console_lines) - self.max_console_lines)
+            self.add_console_line(f"Toplam satır: {len(self.console_lines)}")
+            self.add_console_line(f"Max gösterilecek: {self.max_console_lines}")
+            self.add_console_line(f"Mevcut scroll: {self.console_scroll}")
+            self.add_console_line(f"Max scroll: {max_scroll}")
         
         elif cmd == "grid":
             if len(parts) > 1:
@@ -1730,6 +1892,8 @@ class SpaceGamePygame:
                 self.add_console_line("=== UNIVERSE READY ===")
                 self.add_console_line("Movement: engine on/off, rotate <direction>, speed <value>")
                 self.add_console_line("Info: info universe/objects, scan <x:y>, tp <x:y>")
+                self.add_console_line("Teleport: tp <x:y> veya tp --cat <gokcismi_adı>")
+                self.add_console_line("Catalog: cat --save <name>, cat --list")
                 self.add_console_line("Map: map --save/--load/--list/--delete <name>")
                 self.add_console_line("Exit: quit or exit")
             else:
@@ -1749,6 +1913,8 @@ class SpaceGamePygame:
                 self.add_console_line("=== UNIVERSE READY ===")
                 self.add_console_line("Movement: engine on/off, rotate <direction>, speed <value>")
                 self.add_console_line("Info: info universe/objects, scan <x:y>, tp <x:y>")
+                self.add_console_line("Teleport: tp <x:y> veya tp --cat <gokcismi_adı>")
+                self.add_console_line("Catalog: cat --save <name>, cat --list")
                 self.add_console_line("Map: map --save/--load/--list/--delete <name>")
                 self.add_console_line("Exit: quit or exit")
         
@@ -1780,7 +1946,7 @@ class SpaceGamePygame:
                 return
             
             self.locale.set_language(language)
-            self.add_console_line(self.locale.get("language.changed", language=language.upper()), Colors.GREEN)
+            self.add_console_line(self.locale.get("language.changed", language=language.upper()), Colors.CYAN)
         
         elif cmd == "cat":
             if not self.ship:
@@ -1788,7 +1954,7 @@ class SpaceGamePygame:
                 return
             
             if len(parts) < 2:
-                self.add_console_line("ERROR: Usage: cat --save <name> or cat --list", Colors.RED)
+                self.add_console_line("ERROR: Usage: cat --save <name>, cat --list, or cat --all", Colors.RED)
                 return
             
             if parts[1] == "--save":
@@ -1802,8 +1968,11 @@ class SpaceGamePygame:
             elif parts[1] == "--list":
                 self.list_catalog()
                 
+            elif parts[1] == "--all":
+                self.save_all_matrix_objects_to_catalog()
+                
             else:
-                self.add_console_line("ERROR: Invalid cat command! Use --save or --list", Colors.RED)
+                self.add_console_line("ERROR: Invalid cat command! Use --save, --list, or --all", Colors.RED)
         
         elif cmd == "map":
             if not self.mission_started:
@@ -1860,15 +2029,19 @@ class SpaceGamePygame:
                 self.add_console_line("Kullanım: map --save/--delete/--list/--load <parametreler>")
         
         elif cmd == "help":
-            self.show_help()
-            self.add_console_line("Yardım menüsü gösteriliyor...")
+            if len(parts) > 1:
+                # Belirli komut için yardım göster
+                self.show_help(parts[1])
+            else:
+                # Tüm komutlar için yardım göster
+                self.show_help()
         
         elif cmd == "quit" or cmd == "exit":
             self.running = False
-            self.add_console_line("Oyundan çıkılıyor...")
+            self.add_console_line("Oyundan çıkılıyor...", Colors.CYAN)
         
         else:
-            self.add_console_line(f"Bilinmeyen komut: {cmd}")
+            self.add_console_line(f"Bilinmeyen komut: {cmd}", Colors.WHITE)
     
     def show_universe_info(self):
         """Evren bilgilerini göster"""
@@ -1962,7 +2135,7 @@ class SpaceGamePygame:
         
         if not matrix_objects:
             self.add_console_line("")
-            self.add_console_line("Matris alanında gök cismi bulunamadı.", Colors.YELLOW)
+            self.add_console_line("Matris alanında gök cismi bulunamadı.", Colors.CYAN)
             self.add_console_line("")
             self.add_console_line("=== MATRİS GÖK CİSİMLERİ BİLGİLERİ SONU ===")
             return
@@ -2002,20 +2175,20 @@ class SpaceGamePygame:
             if obj_type == 'sun':
                 self.add_console_line(f"    Yıldız Türü: {obj.get('prop', 'Bilinmeyen')}", Colors.YELLOW)
                 self.add_console_line(f"    Yarıçap: {obj.get('radius', 'Bilinmeyen')} birim", Colors.YELLOW)
-                self.add_console_line(f"    Sıcaklık: {self.get_star_temperature(obj.get('prop', 'M'))} K", Colors.RED)
+                self.add_console_line(f"    Sıcaklık: {self.get_star_temperature(obj.get('prop', 'M'))} K", Colors.YELLOW)
                 self.add_console_line(f"    Parlaklık: {self.get_star_luminosity(obj.get('prop', 'M'))} L☉", Colors.YELLOW)
                 
             elif obj_type == 'black_hole':
-                self.add_console_line(f"    Karadelik Sınıfı: {obj.get('prop', 'Bilinmeyen')}", Colors.MAGENTA)
-                self.add_console_line(f"    Etki Yarıçapı: {obj.get('R_infl', 'Bilinmeyen')} birim", Colors.MAGENTA)
-                self.add_console_line(f"    Dışlama Yarıçapı: {obj.get('R_excl', 'Bilinmeyen')} birim", Colors.MAGENTA)
-                self.add_console_line(f"    Kütle: {self.get_black_hole_mass(obj.get('prop', 'stellar'))} M☉", Colors.MAGENTA)
+                self.add_console_line(f"    Karadelik Sınıfı: {obj.get('prop', 'Bilinmeyen')}", Colors.YELLOW)
+                self.add_console_line(f"    Etki Yarıçapı: {obj.get('R_infl', 'Bilinmeyen')} birim", Colors.YELLOW)
+                self.add_console_line(f"    Dışlama Yarıçapı: {obj.get('R_excl', 'Bilinmeyen')} birim", Colors.YELLOW)
+                self.add_console_line(f"    Kütle: {self.get_black_hole_mass(obj.get('prop', 'stellar'))} M☉", Colors.YELLOW)
                 
             elif obj_type == 'planet':
-                self.add_console_line(f"    Gezegen Türü: {obj.get('prop', 'Bilinmeyen')}", Colors.GREEN)
-                self.add_console_line(f"    Yarıçap: {obj.get('radius', 'Bilinmeyen')} birim", Colors.GREEN)
-                self.add_console_line(f"    Yörünge Yarıçapı: {obj.get('orbit_radius', 'Bilinmeyen'):.1f} birim", Colors.GREEN)
-                self.add_console_line(f"    Ana Yıldız ID: {obj.get('star_id', 'Bilinmeyen')}", Colors.GREEN)
+                self.add_console_line(f"    Gezegen Türü: {obj.get('prop', 'Bilinmeyen')}", Colors.YELLOW)
+                self.add_console_line(f"    Yarıçap: {obj.get('radius', 'Bilinmeyen')} birim", Colors.YELLOW)
+                self.add_console_line(f"    Yörünge Yarıçapı: {obj.get('orbit_radius', 'Bilinmeyen'):.1f} birim", Colors.YELLOW)
+                self.add_console_line(f"    Ana Yıldız ID: {obj.get('star_id', 'Bilinmeyen')}", Colors.YELLOW)
                 
                 # Kaynak bilgileri
                 resources = obj.get('resources', {})
@@ -2028,10 +2201,10 @@ class SpaceGamePygame:
                             self.add_console_line(f"      {resource_type}: {richness} (skor: {score:.2f})", Colors.CYAN)
                 
             elif obj_type == 'asteroid_belt':
-                self.add_console_line(f"    Merkez Yarıçapı: {obj.get('center_radius', 'Bilinmeyen'):.1f} birim", Colors.ORANGE)
-                self.add_console_line(f"    Genişlik: {obj.get('width', 'Bilinmeyen'):.1f} birim", Colors.ORANGE)
-                self.add_console_line(f"    Fragment Sayısı: {obj.get('fragment_count', 'Bilinmeyen')}", Colors.ORANGE)
-                self.add_console_line(f"    Ana Yıldız ID: {obj.get('star_id', 'Bilinmeyen')}", Colors.ORANGE)
+                self.add_console_line(f"    Merkez Yarıçapı: {obj.get('center_radius', 'Bilinmeyen'):.1f} birim", Colors.YELLOW)
+                self.add_console_line(f"    Genişlik: {obj.get('width', 'Bilinmeyen'):.1f} birim", Colors.YELLOW)
+                self.add_console_line(f"    Fragment Sayısı: {obj.get('fragment_count', 'Bilinmeyen')}", Colors.YELLOW)
+                self.add_console_line(f"    Ana Yıldız ID: {obj.get('star_id', 'Bilinmeyen')}", Colors.YELLOW)
                 
                 # Kaynak havuzu bilgileri
                 resource_pool = obj.get('resource_pool', {})
@@ -2043,7 +2216,7 @@ class SpaceGamePygame:
                             score = resource_data.get('score', 0)
                             self.add_console_line(f"      {resource_type}: {richness} (skor: {score:.2f})", Colors.CYAN)
             
-            self.add_console_line(f"    Açıklama: {type_info['description']}", Colors.LIGHT_GRAY)
+            self.add_console_line(f"    Açıklama: {type_info['description']}", Colors.WHITE)
             self.add_console_line("")
         
         # Özet istatistikler
@@ -2068,7 +2241,7 @@ class SpaceGamePygame:
             
             self.add_console_line("")
             self.add_console_line("MESAFE İSTATİSTİKLERİ:", Colors.CYAN)
-            self.add_console_line(f"  En yakın: {min_distance:.1f} nokta", Colors.GREEN)
+            self.add_console_line(f"  En yakın: {min_distance:.1f} nokta", Colors.YELLOW)
             self.add_console_line(f"  En uzak: {max_distance:.1f} nokta", Colors.RED)
             self.add_console_line(f"  Ortalama: {avg_distance:.1f} nokta", Colors.YELLOW)
         
@@ -2715,82 +2888,236 @@ class SpaceGamePygame:
         except Exception as e:
             self.add_console_line(f"HATA: Map yüklenemedi: {e}", Colors.RED)
     
-    def show_help(self):
+    def show_help(self, command=None):
         """Yardım ekranını göster"""
-        help_text = """
-=== UZAY OYUNU KOMUTLARI ===
-
-BAŞLATMA:
-  universe --name <isim> --size <boyut>                 - Gelişmiş evren oluştur/yükle (200-2000)
-  u -n <isim> -s <boyut>                               - Kısa komut (universe - önerilen)
-  go --name <isim> [--size <boyut>] [--velocity <hız>]  - DEPRECATED (kullanımdan kaldırıldı)
-  Örnek: universe --name myuniverse --size 500
-  Örnek: u -n myuniverse -s 1000
-  Not: Mevcut evren varsa yükler, yoksa yeni oluşturur. 'go' komutu artık çalışmaz.
-
-GEMİ KONTROLÜ:
-  startEngine                             - Motoru başlat
-  stopEngine                              - Motoru durdur
-  rotateRight/Left/Up/Down               - Yön değiştir
-  turnBack                                - Geri dön
-
-TELEPORTASYON:
-  tp <x:y>                                - Işınlan (örn: tp 2303:4716)
-  teleportation <x:y>                     - Işınlan (alternatif)
-
-TARAMA:
-  scan <x:y>                              - Koordinat tara (örn: scan 2303:4712)
-
-EVREN YÖNETİMİ:
-  list veya ls                            - Mevcut evrenleri listele
-
-MAP YÖNETİMİ:
-  map --save <isim> --desc <açıklama>     - Mevcut chunk'ı map olarak kaydet
-  map --delete <isim> veya map -d <isim>  - Map dosyasını sil
-  map --list veya map -ls                 - Kayıtlı map'leri listele
-  map --load <isim> veya map -l <isim>    - Map'i matrix olarak yükle
-
-DİĞER:
-  status                                  - Detaylı durum
-  time                                    - Mevcut zaman
-  info universe/objects                   - Evren/matris gök cisimleri bilgilerini göster
-  i u/o                                   - Kısa komut (info universe/objects)
-  grid on/off                             - Grid çizgilerini aç/kapat
-  clear/cls                               - Konsolu temizle
-  help                                    - Bu yardım
-  quit/exit                               - Çıkış
-
-PARAMETRELER:
-  --name, -n     : Evren adı (zorunlu)
-  --size, -s     : Evren boyutu (varsayılan: 500, 100-1000 arası)
-  --velocity, -v : Gemi hızı (varsayılan: 1)
-
-NOT: Teleportasyon enerjinin %5'ini tüketir!
-        """
-        # Yardım metnini konsola yaz
-        self.add_console_line("=== UZAY OYUNU KOMUTLARI ===", Colors.YELLOW)
+        if command:
+            # Belirli komut için yardım göster
+            self.show_command_help(command)
+            return
+        
+        self.add_console_line("=== ORBIT KOMUTLARI ===", Colors.CYAN)
         self.add_console_line("")
-        self.add_console_line("BAŞLATMA:", Colors.CYAN)
-        self.add_console_line("  go --name <isim> [--size <boyut>] [--velocity <hız>]")
-        self.add_console_line("  Örnek: go --name myspaces --size 21000 --velocity 2")
-        self.add_console_line("  Örnek: go -n altay -s 500 -v 1")
+        
+        # BAŞLATMA
+        self.add_console_line("universe (u)", Colors.YELLOW)
+        self.add_console_line("  --name (-n) <isim>     : Evren adı (zorunlu)", Colors.WHITE)
+        self.add_console_line("  --size <boyut>         : Evren boyutu (200-2000)", Colors.WHITE)
+        self.add_console_line("  --session (-s) <name>  : Session adı (varsayılan: evren adı)", Colors.WHITE)
+        self.add_console_line("  --create (-c)          : Zorla yeni evren oluştur", Colors.WHITE)
         self.add_console_line("")
-        self.add_console_line("GEMİ KONTROLÜ:", Colors.CYAN)
-        self.add_console_line("  startEngine, stopEngine")
-        self.add_console_line("  rotate right/left/up/down")
-        self.add_console_line("  turnBack")
+        
+        # GEMİ KONTROLÜ
+        self.add_console_line("engine (e)", Colors.YELLOW)
+        self.add_console_line("  on/off                 : Motor aç/kapat", Colors.WHITE)
         self.add_console_line("")
-        self.add_console_line("HAREKET:", Colors.CYAN)
-        self.add_console_line("  engine on/off, e on/off")
-        self.add_console_line("  speed <1-5>, sp <1-5>")
+        self.add_console_line("rotate (r)", Colors.YELLOW)
+        self.add_console_line("  right/left/up/down     : Yön değiştir", Colors.WHITE)
+        self.add_console_line("  r/l/u/d                : Kısa yön komutları", Colors.WHITE)
         self.add_console_line("")
-        self.add_console_line("BİLGİ:", Colors.CYAN)
-        self.add_console_line("  checkUp/Down/Left/Right")
-        self.add_console_line("  scan <x>:<y>, tp <x>:<y>")
-        self.add_console_line("  status, time, help, quit/exit")
+        self.add_console_line("turnback", Colors.YELLOW)
+        self.add_console_line("  Geri dön", Colors.WHITE)
         self.add_console_line("")
-        self.add_console_line("KONSOL:", Colors.CYAN)
-        self.add_console_line("  clear, cls - Konsolu temizle")
+        self.add_console_line("speed (s)", Colors.YELLOW)
+        self.add_console_line("  <saniye/nokta>         : Hız ayarla (0.1-60)", Colors.WHITE)
+        self.add_console_line("  (parametresiz)         : Mevcut hız analizi göster", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("refresh (r)", Colors.YELLOW)
+        self.add_console_line("  Güncelleme süresi bilgisi", Colors.WHITE)
+        self.add_console_line("")
+        
+        # TELEPORTASYON
+        self.add_console_line("tp (teleportation)", Colors.YELLOW)
+        self.add_console_line("  <x:y>                  : Koordinata ışınlan", Colors.WHITE)
+        self.add_console_line("  --cat <gokcismi_adı>   : Katalog nesnesine ışınlan", Colors.WHITE)
+        self.add_console_line("")
+        
+        # TARAMA
+        self.add_console_line("scan", Colors.YELLOW)
+        self.add_console_line("  <x:y>                  : Koordinat tara", Colors.WHITE)
+        self.add_console_line("")
+        
+        # KATALOG YÖNETİMİ
+        self.add_console_line("cat", Colors.YELLOW)
+        self.add_console_line("  --save <name>          : Gök cismini kataloga kaydet", Colors.WHITE)
+        self.add_console_line("  --list                 : Katalogu listele", Colors.WHITE)
+        self.add_console_line("  --all                  : Matrix'teki tüm gök cisimlerini kaydet", Colors.WHITE)
+        self.add_console_line("")
+        
+        # MAP YÖNETİMİ
+        self.add_console_line("map", Colors.YELLOW)
+        self.add_console_line("  --save <isim>          : Mevcut chunk'ı map olarak kaydet", Colors.WHITE)
+        self.add_console_line("  --desc <açıklama>      : Map açıklaması", Colors.WHITE)
+        self.add_console_line("  --delete (-d) <isim>   : Map dosyasını sil", Colors.WHITE)
+        self.add_console_line("  --list (-ls)           : Kayıtlı map'leri listele", Colors.WHITE)
+        self.add_console_line("  --load (-l) <isim>     : Map'i matrix olarak yükle", Colors.WHITE)
+        self.add_console_line("")
+        
+        # BİLGİ
+        self.add_console_line("info (i)", Colors.YELLOW)
+        self.add_console_line("  universe (u)           : Evren bilgilerini göster", Colors.WHITE)
+        self.add_console_line("  objects (o)            : Matris gök cisimleri bilgilerini göster", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("list (ls)", Colors.YELLOW)
+        self.add_console_line("  Mevcut evrenleri listele", Colors.WHITE)
+        self.add_console_line("")
+        
+        # KONSOL
+        self.add_console_line("clear (cls)", Colors.YELLOW)
+        self.add_console_line("  Konsolu temizle", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("↑ (up)", Colors.YELLOW)
+        self.add_console_line("  Konsol scroll yukarı", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("↓ (down)", Colors.YELLOW)
+        self.add_console_line("  Konsol scroll aşağı", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("scrollinfo", Colors.YELLOW)
+        self.add_console_line("  Scroll debug bilgisi", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("grid", Colors.YELLOW)
+        self.add_console_line("  on/off                 : Grid çizgilerini aç/kapat", Colors.WHITE)
+        self.add_console_line("  (parametresiz)         : Grid durumunu göster", Colors.WHITE)
+        self.add_console_line("")
+        
+        # DİL
+        self.add_console_line("lang", Colors.YELLOW)
+        self.add_console_line("  (parametresiz)         : Mevcut dilleri listele", Colors.WHITE)
+        self.add_console_line("  <dil_kodu>             : Dil değiştir (en, tr, fr, de, es, ja)", Colors.WHITE)
+        self.add_console_line("")
+        
+        # TEST VE DEBUG
+        self.add_console_line("test", Colors.YELLOW)
+        self.add_console_line("  Test komutu", Colors.WHITE)
+        self.add_console_line("")
+        
+        # DİĞER
+        self.add_console_line("help", Colors.YELLOW)
+        self.add_console_line("  Bu yardım", Colors.WHITE)
+        self.add_console_line("")
+        self.add_console_line("quit (exit)", Colors.YELLOW)
+        self.add_console_line("  Çıkış", Colors.WHITE)
+        self.add_console_line("")
+        
+        # DEPRECATED
+        self.add_console_line("go", Colors.YELLOW)
+        self.add_console_line("  DEPRECATED             : Kullanımdan kaldırıldı (universe kullanın)", Colors.WHITE)
+        self.add_console_line("")
+    
+    def show_command_help(self, command):
+        """Belirli komut için yardım göster"""
+        command = command.lower()
+        
+        if command in ["universe", "u"]:
+            self.add_console_line("=== UNIVERSE (U) KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("universe (u)", Colors.YELLOW)
+            self.add_console_line("  --name (-n) <isim>     : Evren adı (zorunlu)", Colors.WHITE)
+            self.add_console_line("  --size <boyut>         : Evren boyutu (200-2000)", Colors.WHITE)
+            self.add_console_line("  --session (-s) <name>  : Session adı (varsayılan: evren adı)", Colors.WHITE)
+            self.add_console_line("  --create (-c)          : Zorla yeni evren oluştur", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  u -n myuniverse -s 500", Colors.WHITE)
+            self.add_console_line("  universe --name test --create", Colors.WHITE)
+            
+        elif command in ["cat"]:
+            self.add_console_line("=== CAT KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("cat", Colors.YELLOW)
+            self.add_console_line("  --save <name>          : Gök cismini kataloga kaydet", Colors.WHITE)
+            self.add_console_line("  --list                 : Katalogu listele", Colors.WHITE)
+            self.add_console_line("  --all                  : Matrix'teki tüm gök cisimlerini kaydet", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  cat --save planet_123", Colors.WHITE)
+            self.add_console_line("  cat --list", Colors.WHITE)
+            self.add_console_line("  cat --all", Colors.WHITE)
+            
+        elif command in ["tp", "teleportation"]:
+            self.add_console_line("=== TP (TELEPORTATION) KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("tp (teleportation)", Colors.YELLOW)
+            self.add_console_line("  <x:y>                  : Koordinata ışınlan", Colors.WHITE)
+            self.add_console_line("  --cat <gokcismi_adı>   : Katalog nesnesine ışınlan", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  tp 100:200", Colors.WHITE)
+            self.add_console_line("  tp --cat planet_123", Colors.WHITE)
+            
+        elif command in ["info", "i"]:
+            self.add_console_line("=== INFO (I) KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("info (i)", Colors.YELLOW)
+            self.add_console_line("  universe (u)           : Evren bilgilerini göster", Colors.WHITE)
+            self.add_console_line("  objects (o)            : Matris gök cisimleri bilgilerini göster", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  info universe", Colors.WHITE)
+            self.add_console_line("  i o", Colors.WHITE)
+            
+        elif command in ["map"]:
+            self.add_console_line("=== MAP KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("map", Colors.YELLOW)
+            self.add_console_line("  --save <isim>          : Mevcut chunk'ı map olarak kaydet", Colors.WHITE)
+            self.add_console_line("  --desc <açıklama>      : Map açıklaması", Colors.WHITE)
+            self.add_console_line("  --delete (-d) <isim>   : Map dosyasını sil", Colors.WHITE)
+            self.add_console_line("  --list (-ls)           : Kayıtlı map'leri listele", Colors.WHITE)
+            self.add_console_line("  --load (-l) <isim>     : Map'i matrix olarak yükle", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  map --save mymap --desc 'Güzel bir bölge'", Colors.WHITE)
+            self.add_console_line("  map --list", Colors.WHITE)
+            self.add_console_line("  map --load mymap", Colors.WHITE)
+            
+        elif command in ["engine", "e"]:
+            self.add_console_line("=== ENGINE (E) KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("engine (e)", Colors.YELLOW)
+            self.add_console_line("  on/off                 : Motor aç/kapat", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  engine on", Colors.WHITE)
+            self.add_console_line("  e off", Colors.WHITE)
+            
+        elif command in ["rotate", "r"]:
+            self.add_console_line("=== ROTATE (R) KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("rotate (r)", Colors.YELLOW)
+            self.add_console_line("  right/left/up/down     : Yön değiştir", Colors.WHITE)
+            self.add_console_line("  r/l/u/d                : Kısa yön komutları", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  rotate right", Colors.WHITE)
+            self.add_console_line("  r u", Colors.WHITE)
+            
+        elif command in ["speed", "s"]:
+            self.add_console_line("=== SPEED (S) KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("speed (s)", Colors.YELLOW)
+            self.add_console_line("  <saniye/nokta>         : Hız ayarla (0.1-60)", Colors.WHITE)
+            self.add_console_line("  (parametresiz)         : Mevcut hız analizi göster", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  speed 2.5", Colors.WHITE)
+            self.add_console_line("  s", Colors.WHITE)
+            
+        elif command in ["lang"]:
+            self.add_console_line("=== LANG KOMUTU ===", Colors.CYAN)
+            self.add_console_line("")
+            self.add_console_line("lang", Colors.YELLOW)
+            self.add_console_line("  (parametresiz)         : Mevcut dilleri listele", Colors.WHITE)
+            self.add_console_line("  <dil_kodu>             : Dil değiştir (en, tr, fr, de, es, ja)", Colors.WHITE)
+            self.add_console_line("")
+            self.add_console_line("Örnekler:", Colors.CYAN)
+            self.add_console_line("  lang", Colors.WHITE)
+            self.add_console_line("  lang tr", Colors.WHITE)
+            
+        else:
+            self.add_console_line(f"Bilinmeyen komut: {command}", Colors.RED)
+            self.add_console_line("Mevcut komutlar: universe, cat, tp, info, map, engine, rotate, speed, lang", Colors.WHITE)
+        
+        self.add_console_line("NOT: Teleportasyon enerjinin %5'ini tüketir!", Colors.YELLOW)
     
     def load_universe(self, file_path: str):
         """Mevcut evreni yükle - Chunk-based ve eski format destekler"""
@@ -3066,13 +3393,9 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
     def run(self):
         """Ana oyun döngüsü"""
         # Startup messages - Linux console
-        self.add_console_line(self.locale.get("game_started"))
-        self.add_console_line(self.locale.get("startup_commands.basic"))
-        self.add_console_line(self.locale.get("startup_commands.example1"))
-        self.add_console_line(self.locale.get("startup_commands.example2"))
-        self.add_console_line(self.locale.get("startup_commands.note"))
-        self.add_console_line(self.locale.get("startup_commands.movement"))
-        self.add_console_line(self.locale.get("startup_commands.exit"))
+        self.add_console_line("ORBIT", Colors.CYAN)
+        self.add_console_line("by Altay Kireççi", Colors.WHITE)
+        self.add_console_line("READY", Colors.CYAN)
         
         # Komut satırı için
         self.current_command = ""
@@ -3096,6 +3419,15 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
                     elif event.key == pygame.K_ESCAPE:
                         # Escape - komutu temizle
                         self.current_command = ""
+                    elif event.key == pygame.K_DOWN:
+                        # Aşağı ok tuşu - konsol scroll
+                        max_scroll = max(0, len(self.console_lines) - self.max_console_lines)
+                        if self.console_scroll < max_scroll:
+                            self.console_scroll += 1
+                    elif event.key == pygame.K_UP:
+                        # Yukarı ok tuşu - konsol scroll
+                        if self.console_scroll > 0:
+                            self.console_scroll -= 1
                     elif event.unicode and event.unicode.isprintable():
                         # Sadece yazdırılabilir karakterleri ekle
                         self.current_command += event.unicode
@@ -3110,8 +3442,7 @@ NOT: Teleportasyon enerjinin %5'ini tüketir!
             self.print_console()            # Sol %25 - Konsol (wrap ile)
             self.print_matrix_display()     # Orta %50 - Grid
             self.print_dashboard_panel()    # Sağ üst - Dashboard
-            self.print_radar_panel()        # Sağ orta - Radar
-            self.print_probe_panel()        # Sağ alt - Sonda
+            self.print_probe_panel()        # Sağ alt - Catalogs
             self.print_command_line()       # Alt - Komut satırı
             
             # Mevcut komutu göster (prompt'un yanında) - Sabit konum

@@ -1,0 +1,55 @@
+{
+  "name": "348246",
+  "description": "",
+  "universe_name": "gora",
+  "created": "2025-10-29T04:09:23.615834",
+  "matrix_data": {
+    "center_x": 348,
+    "center_y": 246,
+    "matrix_start_x": 338,
+    "matrix_start_y": 236,
+    "matrix_size": 20,
+    "celestial_objects": [
+      {
+        "x": 354,
+        "y": 245,
+        "type": "sun",
+        "name": "star_354_245",
+        "prop": "M",
+        "radius": 5
+      },
+      {
+        "x": 345,
+        "y": 250,
+        "type": "planet",
+        "name": "planet_345_250",
+        "prop": "rocky",
+        "radius": 2,
+        "orbit_radius": 10.331586134587965,
+        "star_id": 87,
+        "resources": {
+          "Pb": {
+            "score": 0.2546594458665589,
+            "richness": "normal"
+          },
+          "Th": {
+            "score": 0.0027911264280337574,
+            "richness": "poor"
+          },
+          "N2": {
+            "score": 0.24343271969742972,
+            "richness": "normal"
+          },
+          "Lignite": {
+            "score": 0.25609734438816667,
+            "richness": "normal"
+          },
+          "S": {
+            "score": 0.11615282448849548,
+            "richness": "poor"
+          }
+        }
+      }
+    ]
+  }
+}

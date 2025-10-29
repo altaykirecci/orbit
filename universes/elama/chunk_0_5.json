@@ -1,0 +1,102 @@
+[
+  {
+    "x": 2,
+    "y": 576,
+    "type": "sun",
+    "name": "star_2_576",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 35,
+    "y": 583,
+    "type": "planet",
+    "name": "planet_35_583",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 17.13141868761289,
+    "star_id": 795,
+    "resources": {
+      "Cr": {
+        "score": 0.0970533614049408,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.17386715367068536,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.20939230874880985,
+        "richness": "normal"
+      },
+      "N2": {
+        "score": 0.21983113775049423,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.27228136502213185,
+        "richness": "normal"
+      },
+      "Th": {
+        "score": 0.003217523629023983,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 68,
+    "y": 597,
+    "type": "planet",
+    "name": "planet_68_597",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 11.802021059838797,
+    "star_id": 1920,
+    "resources": {
+      "B": {
+        "score": 0.0048097619657598515,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.0051401263171358,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0026749308944811383,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.4878070273905298,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 2,
+    "y": 576,
+    "type": "asteroid_belt",
+    "name": "belt_2_576_502",
+    "center_radius": 17.802994455148024,
+    "width": 38.46284691541109,
+    "fragment_count": 47,
+    "star_id": 1669,
+    "resource_pool": {
+      "O2": {
+        "score": 1.474020853689369,
+        "richness": "rich"
+      },
+      "Fe": {
+        "score": 5.670954432023318,
+        "richness": "rich"
+      },
+      "S": {
+        "score": 1.8141952685971074,
+        "richness": "rich"
+      },
+      "Ag": {
+        "score": 0.7577662768269241,
+        "richness": "normal"
+      }
+    }
+  }
+]

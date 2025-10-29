@@ -1,0 +1,11 @@
+[
+  {
+    "x": 390,
+    "y": 102,
+    "type": "black_hole",
+    "name": "blackhole_390_102",
+    "prop": "stellar",
+    "R_infl": 400,
+    "R_excl": 600.0
+  }
+]

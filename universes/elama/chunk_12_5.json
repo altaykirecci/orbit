@@ -1,0 +1,110 @@
+[
+  {
+    "x": 1203,
+    "y": 585,
+    "type": "sun",
+    "name": "star_1203_585",
+    "prop": "K",
+    "radius": 7
+  },
+  {
+    "x": 1234,
+    "y": 595,
+    "type": "planet",
+    "name": "planet_1234_595",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 12.193512591332611,
+    "star_id": 1590,
+    "resources": {
+      "Au": {
+        "score": 0.0119138462863458,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.2994809710632494,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.21699270805510623,
+        "richness": "normal"
+      },
+      "Pb": {
+        "score": 0.16026910619211746,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 1214,
+    "y": 580,
+    "type": "planet",
+    "name": "planet_1214_580",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 24.357159497217598,
+    "star_id": 1590,
+    "resources": {
+      "Cr": {
+        "score": 0.0824943360767298,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.16877621569804935,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.05120196526446308,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.23398225909230727,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.24136959370034453,
+        "richness": "normal"
+      },
+      "Ag": {
+        "score": 0.023377932343698088,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.002096841563559192,
+        "richness": "poor"
+      },
+      "S": {
+        "score": 0.15118926338043784,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 1225,
+    "y": 572,
+    "type": "planet",
+    "name": "planet_1225_572",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 30.07477201747442,
+    "star_id": 1590,
+    "resources": {
+      "N2": {
+        "score": 0.20748908939738697,
+        "richness": "normal"
+      },
+      "Cr": {
+        "score": 0.06281388931820023,
+        "richness": "poor"
+      },
+      "Al2O3": {
+        "score": 0.06028734020042088,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.2230724728794581,
+        "richness": "normal"
+      }
+    }
+  }
+]

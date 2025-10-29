@@ -1,0 +1,194 @@
+[
+  {
+    "x": 1199,
+    "y": 1432,
+    "type": "sun",
+    "name": "star_1199_1432",
+    "prop": "M",
+    "radius": 5
+  },
+  {
+    "x": 1196,
+    "y": 1442,
+    "type": "planet",
+    "name": "planet_1196_1442",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 11.338736443517352,
+    "star_id": 497,
+    "resources": {
+      "Pb": {
+        "score": 0.18256742077455668,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.24054508080837217,
+        "richness": "normal"
+      },
+      "C": {
+        "score": 0.2047685113798158,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.10645554050861745,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.07769673554653038,
+        "richness": "poor"
+      }
+    }
+  },
+  {
+    "x": 1194,
+    "y": 1468,
+    "type": "planet",
+    "name": "planet_1194_1468",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 36.66728641521065,
+    "star_id": 497,
+    "resources": {
+      "Fe": {
+        "score": 0.47970410506073957,
+        "richness": "normal"
+      },
+      "Lignite": {
+        "score": 0.31483855627560364,
+        "richness": "normal"
+      },
+      "Ni": {
+        "score": 0.11580634018972247,
+        "richness": "poor"
+      },
+      "Th": {
+        "score": 0.0024727292220168466,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.053315434130023924,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.0046865958616195014,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.22180209632779022,
+        "richness": "normal"
+      },
+      "Cu": {
+        "score": 0.33712964495389,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 1194,
+    "y": 1458,
+    "type": "planet",
+    "name": "planet_1194_1458",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 30.57623055182458,
+    "star_id": 899,
+    "resources": {
+      "B": {
+        "score": 0.00441643855142878,
+        "richness": "poor"
+      },
+      "Pb": {
+        "score": 0.22140509817243742,
+        "richness": "normal"
+      },
+      "Zn": {
+        "score": 0.11700940172357466,
+        "richness": "poor"
+      },
+      "Cr": {
+        "score": 0.05701317838645731,
+        "richness": "poor"
+      },
+      "C": {
+        "score": 0.24907041524744314,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 1187,
+    "y": 1405,
+    "type": "planet",
+    "name": "planet_1187_1405",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 11.740507725633329,
+    "star_id": 1301,
+    "resources": {
+      "Fe": {
+        "score": 0.43772865576367564,
+        "richness": "normal"
+      },
+      "C": {
+        "score": 0.24657536890740223,
+        "richness": "normal"
+      },
+      "Cr": {
+        "score": 0.08040980585815043,
+        "richness": "poor"
+      },
+      "Zn": {
+        "score": 0.19486782340696418,
+        "richness": "poor"
+      },
+      "Lignite": {
+        "score": 0.17702414628708418,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.19471382345790247,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.3854346410567205,
+        "richness": "normal"
+      }
+    }
+  },
+  {
+    "x": 1182,
+    "y": 1419,
+    "type": "planet",
+    "name": "planet_1182_1419",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 25.846033184039477,
+    "star_id": 1301,
+    "resources": {
+      "Ni": {
+        "score": 0.07191025059983135,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.29187136503167554,
+        "richness": "normal"
+      },
+      "B": {
+        "score": 0.005880604699642879,
+        "richness": "poor"
+      },
+      "Fe": {
+        "score": 0.479808558404119,
+        "richness": "normal"
+      },
+      "Au": {
+        "score": 0.011251245811553574,
+        "richness": "poor"
+      },
+      "Cu": {
+        "score": 0.3434701259395699,
+        "richness": "normal"
+      }
+    }
+  }
+]

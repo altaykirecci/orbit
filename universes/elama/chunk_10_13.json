@@ -1,0 +1,42 @@
+[
+  {
+    "x": 1095,
+    "y": 1351,
+    "type": "planet",
+    "name": "planet_1095_1351",
+    "prop": "rocky",
+    "radius": 2,
+    "orbit_radius": 37.2041053604844,
+    "star_id": 1014,
+    "resources": {
+      "Zn": {
+        "score": 0.1579350504066572,
+        "richness": "poor"
+      },
+      "U": {
+        "score": 0.006076933103347391,
+        "richness": "poor"
+      },
+      "Au": {
+        "score": 0.011182267531537863,
+        "richness": "poor"
+      },
+      "B": {
+        "score": 0.004685998067742384,
+        "richness": "poor"
+      },
+      "Ni": {
+        "score": 0.0903977457953586,
+        "richness": "poor"
+      },
+      "N2": {
+        "score": 0.2189575165651557,
+        "richness": "normal"
+      },
+      "O2": {
+        "score": 0.37635763288270946,
+        "richness": "normal"
+      }
+    }
+  }
+]

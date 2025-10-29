@@ -1,0 +1,79 @@
+{
+  "name": "145301",
+  "description": "",
+  "universe_name": "gora",
+  "created": "2025-10-29T04:48:18.781296",
+  "matrix_data": {
+    "center_x": 145,
+    "center_y": 301,
+    "matrix_start_x": 135,
+    "matrix_start_y": 291,
+    "matrix_size": 20,
+    "celestial_objects": [
+      {
+        "x": 147,
+        "y": 295,
+        "type": "planet",
+        "name": "planet_147_295",
+        "prop": "rocky",
+        "radius": 2,
+        "orbit_radius": 20.795442445687225,
+        "star_id": 38,
+        "resources": {
+          "Cr": {
+            "score": 0.08171153534137526,
+            "richness": "poor"
+          },
+          "B": {
+            "score": 0.003550122960455201,
+            "richness": "poor"
+          },
+          "Au": {
+            "score": 0.010722908575502416,
+            "richness": "poor"
+          },
+          "Pb": {
+            "score": 0.15355282223846178,
+            "richness": "poor"
+          },
+          "Cu": {
+            "score": 0.296981972218634,
+            "richness": "normal"
+          },
+          "Zn": {
+            "score": 0.18480651454965719,
+            "richness": "poor"
+          }
+        }
+      },
+      {
+        "x": 141,
+        "y": 310,
+        "type": "planet",
+        "name": "planet_141_310",
+        "prop": "rocky",
+        "radius": 3,
+        "orbit_radius": 45.903149876459324,
+        "star_id": 122,
+        "resources": {
+          "N2": {
+            "score": 0.31670869476152536,
+            "richness": "normal"
+          },
+          "Lignite": {
+            "score": 0.26574236616308317,
+            "richness": "normal"
+          },
+          "Ni": {
+            "score": 0.11898981261622824,
+            "richness": "poor"
+          },
+          "Au": {
+            "score": 0.013003635150016249,
+            "richness": "poor"
+          }
+        }
+      }
+    ]
+  }
+}
